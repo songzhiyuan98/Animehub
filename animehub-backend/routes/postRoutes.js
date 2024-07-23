@@ -1,17 +1,15 @@
 //作用：定义帖子相关的路由。
+//功能：创建帖子和获取帖子的路由，分别对应 postController 中的 createPost 和 getPosts 函数，使用 authenticateToken 中间件验证用户身份，并处理图片上传。
 
-//功能：
-
-//创建帖子和获取帖子的路由，分别对应 postController 中的 createPost 和 getPosts 函数，使用 authenticateToken 中间件验证用户身份，并处理图片上传。
-
-const express = require('express');
-const { createPost, getPosts } = require('../controllers/postController');
-const authenticateToken = require('../middlewares/authenticateToken');
-const multer = require('multer');
+const express = require('express'); //导入express中间件
+const { createPost, getPosts } = require('../controllers/postController'); //导入创建帖子，获取帖子函数
+const authenticateToken = require('../middlewares/authenticateToken'); //导入认证函数
+const multer = require('multer'); //导入multer
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs'); //导入文件操作
 const router = express.Router();
 
+//定义文件储存路径和储存文件名
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadsDir = path.join(__dirname, '../uploads');
@@ -25,6 +23,7 @@ const storage = multer.diskStorage({
   }
 });
 
+//定义文件过滤器
 const upload = multer({
   storage: storage,
   fileFilter: (req, file, cb) => {
@@ -40,7 +39,7 @@ const upload = multer({
   }
 });
 
-router.post('/posts', authenticateToken, upload.single('image'), createPost);
-router.get('/posts', getPosts);
+router.post('/posts', authenticateToken, upload.single('image'), createPost); //创建帖子路由
+router.get('/posts', getPosts); //获取帖子路由
 
 module.exports = router;

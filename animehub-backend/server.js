@@ -1,35 +1,34 @@
 //作用：主应用文件，配置和启动 Express 应用。
-
 //功能：
-
 //连接数据库。
 //配置中间件（CORS、JSON 解析、静态文件服务）。
 //配置路由（认证、评论、帖子、推荐）。
 //启动服务器并监听指定端口。
 
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-const connectDB = require('./config/db');
-const authRoutes = require('./routes/authRoutes');
-const commentRoutes = require('./routes/commentRoutes');
-const postRoutes = require('./routes/postRoutes');
-const recommendationRoutes = require('./routes/recommendationRoutes');
+const express = require('express'); //导入express中间件
+const cors = require('cors'); //导入cors中间件
+const path = require('path'); //导入path
+const connectDB = require('./config/db'); //从config db.js中导入模块连接数据库
+const authRoutes = require('./routes/authRoutes'); //导入认证相关的路由
+const commentRoutes = require('./routes/commentRoutes'); //导入评论相关的路由
+const postRoutes = require('./routes/postRoutes'); //导入帖子相关的路由
+const recommendationRoutes = require('./routes/recommendationRoutes'); //导入推荐相关的路由
 
-const app = express();
-const port = 3000;
+const app = express(); 
+const port = 3000; //定义后端端口3000
 
-connectDB();
+connectDB(); //连接数据库
 
-app.use(cors());
-app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(cors()); //启用cors中间件
+app.use(express.json()); //启用epxress json中间件获取请求头
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); //配置静态文件让外界可以访问特定文件夹
 
-app.use('/api', authRoutes);
-app.use('/api', commentRoutes);
-app.use('/api', postRoutes);
-app.use('/api', recommendationRoutes);
+app.use('/api', authRoutes); //定义访问认证相关路由的路径
+app.use('/api', commentRoutes); //定义访问评论相关路由的路径
+app.use('/api', postRoutes); //定义访问帖子相关路由的路径
+app.use('/api', recommendationRoutes); //定义访问推荐相关路由的路径
 
+//监听端口3000
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
