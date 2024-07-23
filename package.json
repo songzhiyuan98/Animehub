@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.5",
+    "@fontsource/roboto": "^5.0.13",
+    "@mui/material": "^5.16.1",
+    "antd": "^5.19.2",
+    "axios": "^1.7.2",
+    "cors": "^2.8.5",
+    "react-router-dom": "^6.24.1"
+  }
+}
