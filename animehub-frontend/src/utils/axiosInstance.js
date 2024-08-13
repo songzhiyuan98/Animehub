@@ -1,82 +1,106 @@
-//axios拦截器
-import axios from "axios";
-import { logout } from "../redux/actions/userActions"; // 导入 logout action
-import store from "../redux/store"; // 导入 Redux store
+import axios from "axios"; // 导入axios库
+import { logout, setTokenExpired } from "../redux/actions/userActions"; // 从userActions导入logout和setTokenExpired动作
+import store from "../redux/store"; // 导入Redux store
 
-//axios实例
+// 创建一个axios实例，设置基础URL
 const axiosInstance = axios.create({
   baseURL: "http://localhost:3000/api",
 });
 
-let accessToken = localStorage.getItem("accessToken"); //从本地获取jwt令牌
-let refreshToken = localStorage.getItem("refreshToken"); //从本地获取刷新令牌
+const tokenManager = {
+  getAccessToken: () => localStorage.getItem("accessToken"),
+  getRefreshToken: () => localStorage.getItem("refreshToken"),
+  setTokens: (accessToken, refreshToken) => {
+    localStorage.setItem("accessToken", accessToken);
+    localStorage.setItem("refreshToken", refreshToken);
+  },
+  clearTokens: () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+  },
+};
 
-//请求拦截器
+// 请求拦截器
 axiosInstance.interceptors.request.use(
   (config) => {
-    const accessToken = localStorage.getItem("accessToken"); // 动态获取最新的 accessToken
+    const accessToken = tokenManager.getAccessToken();
     if (accessToken) {
-      config.headers["Authorization"] = `Bearer ${accessToken}`; //如果jwt存在，发送请求头
+      config.headers["Authorization"] = `Bearer ${accessToken}`;
     }
     return config;
   },
   (error) => {
-    return Promise.reject(error); //如果返回错误消息，验证失败，返回reject promise，等待响应拦截器
-  }
-);
-
-//响应拦截器
-axiosInstance.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  async (error) => {
-    const originalRequest = error.config;
-
-    if (
-      error.response &&
-      error.response.status === 401 &&
-      !originalRequest._retry
-    ) {
-      originalRequest._retry = true;
-      const { newAccessToken, newRefreshToken } = await refreshAccessToken();
-      if (newAccessToken && newRefreshToken) {
-        axios.defaults.headers.common[
-          "Authorization"
-        ] = `Bearer ${newAccessToken}`;
-        originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
-        localStorage.setItem("refreshToken", newRefreshToken); // 更新存储的刷新令牌
-        refreshToken = newRefreshToken; // 更新内存中的刷新令牌
-        return axiosInstance(originalRequest);
-      } else {
-        store.dispatch(logout()); // 如果刷新令牌无效，注销用户
-      }
-    } else if (!error.response) {
-      // 处理没有响应的错误情况
-      console.error("Network error or server is not reachable");
-    }
-
+    console.error("Request interceptor error:", error); // 记录请求错误
     return Promise.reject(error);
   }
 );
 
-//处理刷新令牌
+// 响应拦截器
+axiosInstance.interceptors.response.use(
+  (response) => response, // 对于成功的响应，直接返回
+  async (error) => {
+    const originalRequest = error.config; // 获取原始请求配置
+    console.log(
+      "Response interceptor caught an error:",
+      error.response?.status
+    );
+
+    // 处理401和403错误
+    if (
+      error.response &&
+      (error.response.status === 401 || error.response.status === 403) &&
+      !originalRequest._retry
+    ) {
+      originalRequest._retry = true; // 标记这个请求已经尝试过刷新令牌
+      console.log("Token might be expired, attempting to refresh");
+
+      try {
+        // 尝试刷新令牌
+        const { newAccessToken, newRefreshToken } = await refreshAccessToken();
+        if (newAccessToken && newRefreshToken) {
+          console.log("Token refreshed successfully");
+          tokenManager.setTokens(newAccessToken, newRefreshToken);
+          axiosInstance.defaults.headers.common[
+            "Authorization"
+          ] = `Bearer ${newAccessToken}`; // 更新axios实例的默认头部
+          originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`; // 更新原始请求的头部
+          return axiosInstance(originalRequest); // 重试原始请求
+        } else {
+          throw new Error("Failed to refresh token");
+        }
+      } catch (refreshError) {
+        console.error("Error during token refresh:", refreshError);
+        store.dispatch(setTokenExpired(true)); // 设置token过期状态
+        setTimeout(() => {
+          console.log("Logging out due to refresh token failure");
+          tokenManager.clearTokens(); // 清除所有令牌
+          store.dispatch(logout()); // 延迟执行登出操作
+        }, 1000);
+        return Promise.reject(refreshError);
+      }
+    }
+
+    // 如果不是401或403错误，或者刷新失败，返回错误
+    return Promise.reject(error);
+  }
+);
+
 const refreshAccessToken = async () => {
+  const refreshToken = tokenManager.getRefreshToken();
+  console.log("refresh token", refreshToken);
   try {
     const response = await axios.post("http://localhost:3000/api/token", {
-      refreshToken,
+      token: refreshToken,
     });
     const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
       response.data;
-    localStorage.setItem("accessToken", newAccessToken);
-    localStorage.setItem("refreshToken", newRefreshToken); // 更新本地存储的刷新令牌
-    accessToken = newAccessToken;
-    refreshToken = newRefreshToken;
+    tokenManager.setTokens(newAccessToken, newRefreshToken);
     return { newAccessToken, newRefreshToken };
   } catch (error) {
     console.error("Error refreshing access token:", error);
+    tokenManager.clearTokens(); // 清除无效的令牌
     return { newAccessToken: null, newRefreshToken: null };
   }
 };
 
-export default axiosInstance;
+export default axiosInstance; // 导出配置好的axios实例

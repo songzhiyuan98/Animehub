@@ -1,8 +1,9 @@
 // src/components/Login.js
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axiosInstance from "../utils/axiosInstance";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { login } from "../redux/actions/userActions";
+import { setTokenExpired } from "../redux/actions/userActions";
 import { useNavigate } from "react-router-dom";
 import {
   TextField,
@@ -24,6 +25,16 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false); //定义showPassword状态
   const dispatch = useDispatch(); // 获取 dispatch 函数
   const navigate = useNavigate(); // 获取 navigate 函数
+
+  const tokenExpired = useSelector((state) => state.user.tokenExpired);
+
+  useEffect(() => {
+    if (tokenExpired) {
+      console.log("Login page detected token expired state");
+      alert("Your session has expired. Please log in again.");
+      dispatch(setTokenExpired(false));
+    }
+  }, [tokenExpired, dispatch]);
 
   //管理显示密码图标点击事件
   const handleClickShowPassword = () => {

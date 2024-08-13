@@ -79,6 +79,80 @@ const AnimeCard = ({ anime, onCardClick }) => {
 
 // 主页面组件
 const Index = () => {
+  //动漫播放状态预定义
+  const ANIME_STATUSES = [
+    { value: "", label: "全部" },
+    { value: "airing", label: "连载中" },
+    { value: "complete", label: "已完结" },
+    { value: "upcoming", label: "即将播出" },
+  ];
+  //视频类型预定义
+  const ANIME_TYPES = [
+    { value: "", label: "全部" },
+    { value: "tv", label: "TV" },
+    { value: "movie", label: "电影" },
+    { value: "ova", label: "OVA" },
+    { value: "special", label: "特别篇" },
+    { value: "ona", label: "ONA（网络动画）" },
+    { value: "tv_special", label: "电视特别篇" },
+  ];
+  //视频评级预定义
+  const ANIME_RATINGS = [
+    { value: "", label: "全部" },
+    { value: "g", label: "普遍级" },
+    { value: "pg", label: "建议父母指导" },
+    { value: "pg13", label: "13岁以上" },
+    { value: "r17", label: "限制级（17岁以上）" },
+    { value: "r", label: "限制级（成人限定）" },
+    { value: "rx", label: "成人专用" },
+    // ... 其他评级
+  ];
+  //排序方式自定义
+  const ANIME_ORDER_BY = [
+    { value: "end_date", label: "结束日期" },
+    { value: "start_date", label: "开始日期" },
+    { value: "score", label: "评分" },
+    { value: "popularity", label: "人气" },
+    { value: "rank", label: "排名" },
+    { value: "mal_id", label: "动漫ID" },
+    { value: "title", label: "标题" },
+    { value: "episodes", label: "集数" },
+    { value: "scored_by", label: "评分人数" },
+    // ... 其他排序选项
+  ];
+  //预定义成人内容开关
+  const ANIME_SFW = [
+    { value: true, label: "限制成人内容" },
+    { value: false, label: "放开限制" },
+  ];
+  //升序降序
+  const SORT_DIRECTIONS = [
+    { value: "desc", label: "降序" },
+    { value: "asc", label: "升序" },
+  ];
+  const ANIME_GENRES = [
+    { value: 1, label: "动作" },
+    { value: 2, label: "冒险" },
+    { value: 4, label: "喜剧" },
+    { value: 8, label: "剧情" },
+    { value: 10, label: "奇幻" },
+    { value: 22, label: "恋爱" },
+    { value: 24, label: "科幻" },
+    { value: 36, label: "日常" },
+    { value: 30, label: "运动" },
+    { value: 7, label: "悬疑" },
+    { value: 37, label: "超自然" },
+    { value: 23, label: "校园" },
+    { value: 35, label: "后宫" },
+    { value: 12, label: "成人" },
+    { value: 62, label: "异世界" },
+    { value: 19, label: "音乐" },
+    { value: 38, label: "军事" },
+    { value: 40, label: "心理" },
+    { value: 29, label: "太空" },
+    { value: 11, label: "游戏" },
+    { value: 31, label: "超能力" },
+  ];
   // 状态变量定义
   const [animes, setAnimes] = useState([]); // 存储动漫列表
   const [page, setPage] = useState(1); // 当前页码
@@ -89,7 +163,14 @@ const Index = () => {
   const [filters, setFilters] = useState({
     query: "",
     genres: [],
-    sort: "score", // 默认按人气排序
+    type: "",
+    status: "",
+    rating: "",
+    order_by: "end_date",
+    sort: "desc",
+    page: 1,
+    limit: 24,
+    sfw: true, // 默认过滤成人内容
   });
   const navigate = useNavigate(); // 用于页面导航
 
@@ -102,16 +183,20 @@ const Index = () => {
   useEffect(() => {
     const fetchAnimes = async () => {
       setLoading(true);
+      console.log("Genres before API call:", filters.genres);
       try {
         const result = await axios.get("https://api.jikan.moe/v4/anime", {
           params: {
             q: filters.query,
             page: page,
-            genres:
-              filters.genres.length > 0 ? filters.genres.join(",") : undefined,
-            order_by: filters.sort || "popularity", // 如果没有选择排序，默认按人气排序
-            sort: "desc",
-            limit: 20, // 每页显示的数量
+            limit: filters.limit,
+            type: filters.type,
+            status: filters.status,
+            rating: filters.rating,
+            genres: filters.genres.join(","),
+            order_by: filters.order_by,
+            sort: filters.sort,
+            sfw: filters.sfw,
           },
         });
         if (page === 1) {
@@ -133,12 +218,12 @@ const Index = () => {
   useEffect(() => {
     const fetchGenres = async () => {
       try {
-        const response = await axios.get(
-          "https://api.jikan.moe/v4/genres/anime"
-        );
-        setGenres(response.data.data);
+        const [genresResponse] = await Promise.all([
+          axios.get("https://api.jikan.moe/v4/genres/anime"),
+        ]);
+        setGenres(genresResponse.data.data);
       } catch (error) {
-        console.error("Error fetching genres:", error);
+        console.error("Error fetching filter options:", error);
       }
     };
 
@@ -155,6 +240,12 @@ const Index = () => {
   // 加载更多动漫
   const loadMore = () => {
     setPage(page + 1);
+  };
+
+  //函数限制字数
+  const truncatedSynopsisForTitle = (text) => {
+    if (!text) return ""; // 如果 text 是 null 或 undefined，返回空字符串
+    return text.length > 10 ? text.substring(0, 14) + "..." : text;
   };
 
   // 翻译查询
@@ -181,70 +272,216 @@ const Index = () => {
     <Box
       sx={{ backgroundColor: "#F2F2F2", minHeight: "100vh", color: "#333333" }}
     >
-      <Container maxWidth={false} sx={{ marginTop: 2 }}>
-        {/* 页面标题 */}
-        <Typography variant="h4" gutterBottom>
-          动漫索引
-        </Typography>
-
-        {/* 过滤器按钮 */}
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => setOpenFilter(true)}
-          sx={{ mb: 3 }}
-        >
-          过滤选项
-        </Button>
-
-        {/* 过滤器对话框 */}
-        <FilterDialog
-          open={openFilter}
-          onClose={() => setOpenFilter(false)}
-          genres={genres}
-          onApply={handleApplyFilters}
-          initialFilters={filters}
-          translateQuery={translateQuery}
-        />
-
-        {/* 动漫列表容器 */}
-        <Box
-          sx={{
-            border: "1px solid #ddd",
-            backgroundColor: "#fff",
-            borderRadius: "16px",
-            boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-            padding: 2,
-            mt: 3,
-          }}
-        >
-          <Grid container spacing={2}>
-            {/* 渲染动漫卡片 */}
-            {animes.map((anime) => (
-              <AnimeCard
-                key={anime.mal_id}
-                anime={anime}
-                onCardClick={handleCardClick}
-              />
-            ))}
-          </Grid>
-        </Box>
-
-        {/* 加载指示器 */}
-        {loading && (
-          <CircularProgress sx={{ display: "block", margin: "20px auto" }} />
-        )}
-        {/* 加载更多按钮 */}
-        {!loading && animes.length > 0 && (
-          <Button
-            onClick={loadMore}
-            variant="contained"
-            color="primary"
-            sx={{ display: "block", margin: "20px auto" }}
+      <Container maxWidth={false}>
+        <Box sx={{ padding: 3 }}>
+          {/* 页面标题 */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 3,
+            }}
           >
-            加载更多
-          </Button>
-        )}
+            {/* 页面标题 */}
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              <Box
+                sx={{
+                  width: 4,
+                  height: 40, // 你可以根据需要调整高度
+                  backgroundColor: "#ed6000",
+                  marginRight: 2,
+                }}
+              />
+              <Typography variant="h4" gutterBottom sx={{ mt: 2 }}>
+                动漫探索
+              </Typography>
+            </Box>
+
+            {/* 过滤器按钮 */}
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setOpenFilter(true)}
+              sx={{
+                height: "50px", // 调整高度以匹配标题
+                fontSize: "1.2rem", // 增大字体大小
+                padding: "10px 20px", // 增加内边距
+                borderRadius: "25px", // 圆角边框
+                boxShadow: "0 4px 6px rgba(0,0,0,0.1)", // 添加阴影效果
+                transition: "all 0.3s ease", // 添加过渡效果
+                "&:hover": {
+                  transform: "translateY(-2px)", // 鼠标悬停时轻微上移
+                  boxShadow: "0 6px 8px rgba(0,0,0,0.15)", // 鼠标悬停时增强阴影
+                },
+              }}
+            >
+              过滤选项
+            </Button>
+          </Box>
+          {/* 过滤器对话框 */}
+          <FilterDialog
+            open={openFilter}
+            onClose={() => setOpenFilter(false)}
+            genres={ANIME_GENRES}
+            types={ANIME_TYPES}
+            statuses={ANIME_STATUSES}
+            ratings={ANIME_RATINGS}
+            orderBy={ANIME_ORDER_BY}
+            sortDirections={SORT_DIRECTIONS}
+            sfws={ANIME_SFW}
+            onApply={handleApplyFilters}
+            initialFilters={filters}
+            translateQuery={translateQuery}
+          />
+          {/* 动漫列表容器 */}
+          <Box
+            sx={{
+              border: "1px solid #ddd",
+              backgroundColor: "#fff",
+              borderRadius: "16px",
+              boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+              padding: 2,
+              mt: 3,
+            }}
+          >
+            <Grid container spacing={1}>
+              {/* 渲染动漫卡片 */}
+              {animes.map((anime) => (
+                <Grid item xs={12} sm={6} md={2} key={anime.mal_id}>
+                  <Box
+                    onClick={() => handleCardClick(anime.mal_id)}
+                    sx={{
+                      cursor: "pointer",
+                      borderRadius: "16px",
+                      transition: "transform 0.3s ease-in-out",
+                      padding: 2,
+                      "&:hover": {
+                        transform: "scale(1.1)",
+                      },
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      overflow: "hidden",
+                      height: "90%",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: "100%",
+                        paddingTop: "133%",
+                        position: "relative",
+                      }}
+                    >
+                      <Avatar
+                        alt={anime.title}
+                        src={anime.images.jpg.large_image_url}
+                        variant="square"
+                        sx={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          width: "100%",
+                          height: "100%",
+                          borderRadius: "8px",
+                          objectFit: "cover",
+                        }}
+                      />
+                    </Box>
+                    <Typography variant="h6" align="center" sx={{ mt: 2 }}>
+                      {truncatedSynopsisForTitle(
+                        anime.title_japanese || anime.title || ""
+                      )}
+                    </Typography>
+                  </Box>
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+          {/* 加载更多按钮和加载指示器 */}
+          <Box
+            sx={{
+              mt: 4,
+              textAlign: "center",
+              minHeight: 200,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            {loading ? (
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <CircularProgress
+                  size={60}
+                  thickness={4}
+                  sx={{
+                    color: "primary.main",
+                    animation: "pulse 1.5s ease-in-out infinite",
+                    "@keyframes pulse": {
+                      "0%": {
+                        opacity: 1,
+                        transform: "scale(0.8)",
+                      },
+                      "50%": {
+                        opacity: 0.5,
+                        transform: "scale(1)",
+                      },
+                      "100%": {
+                        opacity: 1,
+                        transform: "scale(0.8)",
+                      },
+                    },
+                  }}
+                />
+                <Typography
+                  variant="h6"
+                  sx={{
+                    mt: 2,
+                    color: "text.secondary",
+                    animation: "fadeInOut 1.5s ease-in-out infinite",
+                    "@keyframes fadeInOut": {
+                      "0%": { opacity: 0.5 },
+                      "50%": { opacity: 1 },
+                      "100%": { opacity: 0.5 },
+                    },
+                  }}
+                >
+                  正在加载更多精彩内容...
+                </Typography>
+              </Box>
+            ) : (
+              animes.length > 0 && (
+                <Button
+                  onClick={loadMore}
+                  variant="outlined"
+                  color="primary"
+                  sx={{
+                    padding: "10px 30px",
+                    fontSize: "1.1rem",
+                    borderRadius: "25px",
+                    borderWidth: "2px",
+                    transition: "all 0.3s ease",
+                    "&:hover": {
+                      backgroundColor: "primary.main",
+                      color: "white",
+                      transform: "translateY(-2px)",
+                      boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                    },
+                  }}
+                >
+                  加载更多
+                </Button>
+              )
+            )}
+          </Box>
+        </Box>
       </Container>
     </Box>
   );

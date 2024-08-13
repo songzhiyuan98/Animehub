@@ -13,22 +13,35 @@ import {
 
 //弹窗组件接受以下参数
 const FilterDialog = ({
-  open, //控制弹窗是否打开
-  onClose, //控制弹窗关闭的函数
-  genres, //动漫类型列表
-  onApply, //应用过滤器的函数
-  initialFilters, //初始过滤器状态
-  translateQuery, //翻译查询的参数
+  open,
+  onClose,
+  genres,
+  types,
+  statuses,
+  ratings,
+  orderBy,
+  sortDirections,
+  sfws,
+  onApply,
+  initialFilters,
+  translateQuery,
 }) => {
   const [filters, setFilters] = useState(initialFilters); //创建本地过滤状态filter，包含所有过滤条件的对象
 
   //处理类型切换的函数，如果该类型已经在过滤器状态中，移除该类型，如果不在，则添加
-  const handleGenreToggle = (genreId) => {
+  const handleGenreToggle = (genreValue) => {
     setFilters((prev) => ({
       ...prev,
-      genres: prev.genres.includes(genreId) //如果该类型已经存在过滤器状态中
-        ? prev.genres.filter((id) => id !== genreId) //执行删除该类型
-        : [...prev.genres, genreId], //否则新增该类型
+      genres: prev.genres.includes(genreValue)
+        ? prev.genres.filter((value) => value !== genreValue)
+        : [...prev.genres, genreValue],
+    }));
+  };
+
+  const handleToggle = (field, value) => {
+    setFilters((prev) => ({
+      ...prev,
+      [field]: prev[field] === value ? "" : value,
     }));
   };
 
@@ -67,53 +80,112 @@ const FilterDialog = ({
         <TextField
           fullWidth
           label="搜索动漫"
-          value={filters.query} //将该输入框的值绑定filter对象的query属性
-          onChange={
-            (e) => setFilters((prev) => ({ ...prev, query: e.target.value })) //更新query属性
+          value={filters.query}
+          onChange={(e) =>
+            setFilters((prev) => ({ ...prev, query: e.target.value }))
           }
           margin="normal"
         />
+
         <Box sx={{ mt: 2 }}>
           <Box sx={{ fontWeight: "bold", mb: 1 }}>类型：</Box>
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-            {genres.map(
-              (
-                genre //根据传入的genre参数数组生成chip组件
-              ) => (
-                <Chip
-                  key={genre.mal_id}
-                  label={genre.name} //组件显示文字genre name属性
-                  onClick={() => handleGenreToggle(genre.mal_id.toString())} //点击事件调用类型切换函数正确处理filter.genre属性变化
-                  color={
-                    filters.genres.includes(genre.mal_id.toString())
-                      ? "primary"
-                      : "default" //判断该类型是否被选中，被选中显示primary，未选中显示default
-                  }
-                />
-              )
-            )}
+            {types.map((type) => (
+              <Chip
+                key={type.value}
+                label={type.label}
+                onClick={() => handleToggle("type", type.value)}
+                color={filters.type === type.value ? "primary" : "default"}
+              />
+            ))}
           </Box>
         </Box>
+
         <Box sx={{ mt: 2 }}>
-          <Box sx={{ fontWeight: "bold", mb: 1 }}>排序：</Box>
+          <Box sx={{ fontWeight: "bold", mb: 1 }}>状态：</Box>
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-            <Chip
-              label="默认"
-              onClick={() => setFilters((prev) => ({ ...prev, sort: "" }))}
-              color={filters.sort === "" ? "primary" : "default"}
-            />
-            <Chip
-              label="人气"
-              onClick={() =>
-                setFilters((prev) => ({ ...prev, sort: "popularity" }))
-              }
-              color={filters.sort === "popularity" ? "primary" : "default"}
-            />
-            <Chip
-              label="评分"
-              onClick={() => setFilters((prev) => ({ ...prev, sort: "score" }))}
-              color={filters.sort === "score" ? "primary" : "default"}
-            />
+            {statuses.map((status) => (
+              <Chip
+                key={status.value}
+                label={status.label}
+                onClick={() => handleToggle("status", status.value)}
+                color={filters.status === status.value ? "primary" : "default"}
+              />
+            ))}
+          </Box>
+        </Box>
+
+        <Box sx={{ mt: 2 }}>
+          <Box sx={{ fontWeight: "bold", mb: 1 }}>分级：</Box>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+            {ratings.map((rating) => (
+              <Chip
+                key={rating.value}
+                label={rating.label}
+                onClick={() => handleToggle("rating", rating.value)}
+                color={filters.rating === rating.value ? "primary" : "default"}
+              />
+            ))}
+          </Box>
+        </Box>
+
+        <Box sx={{ mt: 2 }}>
+          <Box sx={{ fontWeight: "bold", mb: 1 }}>限制成人内容：</Box>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+            {sfws.map((sfw) => (
+              <Chip
+                key={sfw.value}
+                label={sfw.label}
+                onClick={() => handleToggle("sfw", sfw.value)}
+                color={filters.sfw === sfw.value ? "primary" : "default"}
+              />
+            ))}
+          </Box>
+        </Box>
+
+        <Box sx={{ mt: 2 }}>
+          <Box sx={{ fontWeight: "bold", mb: 1 }}>类型：</Box>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+            {genres.map((genre) => (
+              <Chip
+                key={genre.value}
+                label={genre.label}
+                onClick={() => handleGenreToggle(genre.value)}
+                color={
+                  filters.genres.includes(genre.value) ? "primary" : "default"
+                }
+              />
+            ))}
+          </Box>
+        </Box>
+
+        <Box sx={{ mt: 2 }}>
+          <Box sx={{ fontWeight: "bold", mb: 1 }}>排序方式：</Box>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+            {orderBy.map((option) => (
+              <Chip
+                key={option.value}
+                label={option.label}
+                onClick={() => handleToggle("order_by", option.value)}
+                color={
+                  filters.order_by === option.value ? "primary" : "default"
+                }
+              />
+            ))}
+          </Box>
+        </Box>
+
+        <Box sx={{ mt: 2 }}>
+          <Box sx={{ fontWeight: "bold", mb: 1 }}>排序方向：</Box>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+            {sortDirections.map((option) => (
+              <Chip
+                key={option.value}
+                label={option.label}
+                onClick={() => handleToggle("sort", option.value)}
+                color={filters.sort === option.value ? "primary" : "default"}
+              />
+            ))}
           </Box>
         </Box>
       </DialogContent>

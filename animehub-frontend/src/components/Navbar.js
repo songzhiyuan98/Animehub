@@ -87,7 +87,7 @@ const Navbar = () => {
             sx={{
               mr: 2,
               display: { xs: "none", md: "flex" },
-              fontFamily: "monospace",
+              fontFamily: "'Lobster', cursive",
               fontWeight: 700,
               letterSpacing: ".3rem",
               color: "#333333",

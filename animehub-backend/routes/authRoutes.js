@@ -52,7 +52,7 @@ router.post("/request-verification-code", requestVerificationCode); //定义请�
 router.post("/verify-code", verifyCode); //定义验证验证码路由
 router.post("/register", register); //定义注册路由为api/register
 router.post("/login", login); //定义登录路由为api/register
-router.get("/getUserDoc", getUserDoc); //定义获取用户文档api/getUserDoc
+router.get("/getUserDoc", authenticateToken, getUserDoc); //定义获取用户文档api/getUserDoc
 router.post("/token", refreshToken); //定义刷新令牌路由为api/register
 router.post(
   "/updateUserProfile",

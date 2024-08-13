@@ -7,14 +7,19 @@ const {
   removeFromFavorites,
   checkFavorites,
 } = require("../controllers/animeController");
+const authenticateToken = require("../middlewares/authenticateToken"); //认证模块导入
 
 const router = express.Router();
 
 router.get("/daily-recommendations", getDailyRecommendations);
 router.get("/anime/:id", getAnimeById);
-router.get("/favorites/:userId", getFavorites);
-router.post("/favorites/add", addToFavorites);
-router.post("/favorites/remove", removeFromFavorites);
-router.get("/favorites/check/:userId/:animeId", checkFavorites);
+router.get("/favorites/:userId", authenticateToken, getFavorites);
+router.post("/favorites/add", authenticateToken, addToFavorites);
+router.post("/favorites/remove", authenticateToken, removeFromFavorites);
+router.get(
+  "/favorites/check/:userId/:animeId",
+  authenticateToken,
+  checkFavorites
+);
 
 module.exports = router;

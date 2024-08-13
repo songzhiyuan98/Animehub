@@ -7,6 +7,7 @@ const RefreshToken = require("../models/RefreshToken"); //导入刷新令牌数�
 const SECRET_KEY = "your_hardcoded_secret_key"; //定义jwt验证密钥
 const REFRESH_TOKEN_EXPIRATION = 7 * 24 * 60 * 60 * 1000; //定义刷新令牌过期时间（固定）
 const redis = require("../config/redisClient"); //导入redis模块
+const verifyToken = require("../utils/verifyToken");
 const {
   sendVerificationCode,
   generateVerificationCode,
@@ -218,32 +219,35 @@ exports.updateUserProfile = async (req, res) => {
 //刷新令牌函数
 exports.refreshToken = async (req, res) => {
   const { token } = req.body;
-  if (!token) return res.sendStatus(401); //确认刷新令牌包含在请求头中
+
+  if (!token) {
+    return res.sendStatus(401);
+  }
 
   try {
-    const refreshToken = await RefreshToken.findOne({ token }); //异步请求寻找该令牌是否存在于数据库
+    const refreshToken = await RefreshToken.findOne({ token });
+
     if (!refreshToken || refreshToken.expiresAt < new Date()) {
       if (refreshToken) await RefreshToken.deleteOne({ token });
       return res.sendStatus(403);
-    } //如果令牌不存在或者已经过期，如果令牌存在就删除，已过期，如果不存在，直接返回403错误响应
+    }
 
     if (refreshToken.refreshCount >= 5) {
       return res.status(403).send("刷新次数已达到上限，请重新登录");
-    } //如果该令牌已经刷新过五次，则返回错误消息，需要重新登录获取新的刷新令牌
+    }
 
     try {
-      const user = await verifyToken(token, SECRET_KEY); //验证该令牌有效
-      await RefreshToken.deleteOne({ token }); //删除旧刷新令牌
+      const user = await verifyToken(token, SECRET_KEY);
 
-      //返回新的刷新令牌，jwt令牌
+      await RefreshToken.deleteOne({ token });
+
       const accessToken = jwt.sign({ userId: user.userId }, SECRET_KEY, {
-        expiresIn: "1h",
+        expiresIn: "15m",
       });
       const newRefreshToken = jwt.sign({ userId: user.userId }, SECRET_KEY, {
         expiresIn: "7d",
       });
 
-      //把刷新令牌路由返回的新刷新令牌存入数据库，但不更新过期时间属性
       const newRefreshTokenDoc = new RefreshToken({
         token: newRefreshToken,
         userId: user.userId,
@@ -252,11 +256,13 @@ exports.refreshToken = async (req, res) => {
       });
       await newRefreshTokenDoc.save();
 
-      res.json({ accessToken, refreshToken: newRefreshToken }); //响应jwt令牌，刷新令牌
-    } catch (err) {
-      return res.status(403).send("Failed to verify refresh token"); //错误响应
+      res.json({ accessToken, refreshToken: newRefreshToken });
+    } catch (verifyError) {
+      console.error("Failed to verify refresh token:", verifyError);
+      return res.status(403).send("Failed to verify refresh token");
     }
   } catch (error) {
-    res.status(500).send("Error processing token: " + error.message); //错误响应
+    console.error("Error processing token:", error);
+    res.status(500).send("Error processing token: " + error.message);
   }
 };

@@ -10,28 +10,37 @@ import UserCenter from "./components/UserCenter";
 import PrivateRoute from "./components/PrivateRoute";
 import AnimeInfo from "./components/AnimeInfo"; // 导入 AnimeInfo 组件
 import AnimeVideo from "./components/AnimeVideo"; //导入动漫预告片组件
+import TokenExpiredAlert from "./components/TokenExpiredAlert"; //过期报错组件
 import axiosInstance from "../src/utils/axiosInstance";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { login } from "./redux/actions/userActions"; // 导入 login action
 import LinearProgress from "@mui/material/LinearProgress"; //加载条
+import {
+  connectWebSocket,
+  disconnectWebSocket,
+  fetchNotifications,
+} from "./redux/actions/notificationActions";
 
 const App = () => {
-  const dispatch = useDispatch(); //获取dispatch函数
-  const [loading, setLoading] = useState(true); //状态变量决定是否加载动画
+  const dispatch = useDispatch();
+  const [loading, setLoading] = useState(true);
+  const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
 
   useEffect(() => {
-    const accessToken = localStorage.getItem("accessToken"); //钩子重新加载页面，派发函数有变化，从本地缓存中获取jwt和用户名
+    const accessToken = localStorage.getItem("accessToken");
     const username = localStorage.getItem("username");
 
-    //如果用户名和访问令牌获取成功
     if (username && accessToken) {
       axiosInstance
         .get("http://localhost:3000/api/getUserDoc", {
-          params: { username }, // 通过查询参数传递用户名
-        }) //发送请求以用户名请求完成用户文档对象
+          params: { username },
+        })
         .then((response) => {
           const user = response.data;
           dispatch(login(user));
+          // 用户成功登录后，连接 WebSocket 并获取通知
+          dispatch(connectWebSocket());
+          dispatch(fetchNotifications());
         })
         .catch((error) => {
           localStorage.removeItem("username");
@@ -39,12 +48,26 @@ const App = () => {
           localStorage.removeItem("refreshToken");
         })
         .finally(() => {
-          setLoading(false); //加载完成后，停止加载动画
+          setLoading(false);
         });
     } else {
-      setLoading(false); //如果没有用户信息，停止加载动画
+      setLoading(false);
     }
   }, [dispatch]);
+
+  // 监听登录状态变化
+  useEffect(() => {
+    if (isLoggedIn) {
+      dispatch(connectWebSocket());
+      dispatch(fetchNotifications());
+    } else {
+      dispatch(disconnectWebSocket());
+    }
+
+    return () => {
+      dispatch(disconnectWebSocket());
+    };
+  }, [isLoggedIn, dispatch]);
 
   if (loading) {
     return <LinearProgress />;
@@ -53,6 +76,7 @@ const App = () => {
   return (
     <Router>
       <Navbar />
+      <TokenExpiredAlert />
       <Routes>
         <Route exact path="/" element={<Home />} />
         <Route path="/index" element={<Index />} />

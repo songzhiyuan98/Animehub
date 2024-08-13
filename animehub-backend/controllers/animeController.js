@@ -87,8 +87,6 @@ exports.addToFavorites = async (req, res) => {
 
     await favoriteAnime.save();
 
-    console.log("Favorite added successfully");
-
     res
       .status(200)
       .json({ message: "Anime added to favorites", favoriteAnime });
@@ -106,11 +104,9 @@ exports.addToFavorites = async (req, res) => {
 
 exports.getFavorites = async (req, res) => {
   let { userId } = req.params;
-  console.log("Original userId:", userId);
 
   // 移除多余的引号（如果有）
   userId = userId.replace(/^"|"$/g, "");
-  console.log("Cleaned userId:", userId);
 
   try {
     let query;
@@ -119,10 +115,8 @@ exports.getFavorites = async (req, res) => {
     } else {
       query = { userId: userId };
     }
-    console.log("Query:", JSON.stringify(query));
 
     const favorites = await FavoriteAnime.find(query).sort({ dateAdded: -1 });
-    console.log("Fetched favorites:", favorites);
     res.status(200).json(favorites);
   } catch (error) {
     console.error("Error fetching favorites:", error);
@@ -137,7 +131,6 @@ exports.removeFromFavorites = async (req, res) => {
 
   try {
     await FavoriteAnime.findOneAndDelete({ userId, mal_id: animeId });
-    console.log("Favorite delete successfully");
     res.status(200).json({ message: "Anime removed from favorites" });
   } catch (error) {
     console.error("Error removing anime from favorites:", error);
@@ -147,14 +140,12 @@ exports.removeFromFavorites = async (req, res) => {
 
 exports.checkFavorites = async (req, res) => {
   let { userId, animeId } = req.params;
-  console.log("Received userId:", userId);
 
   userId = userId.replace(/^"|"$/g, ""); // 清理 userId
 
   try {
     // 检查 userId 是否为有效的 ObjectId 字符串
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      console.log("Invalid ObjectId:", userId);
       return res.status(400).json({ message: "Invalid userId" });
     }
 

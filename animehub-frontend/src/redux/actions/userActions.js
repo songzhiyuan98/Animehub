@@ -19,6 +19,7 @@ export const updateUser = (user) => {
 
 //logout action用于用户登出
 export const logout = () => {
+  console.log("logout action dispatched");
   localStorage.removeItem("username");
   localStorage.removeItem("accessToken");
   localStorage.removeItem("refreshToken");
@@ -26,3 +27,9 @@ export const logout = () => {
     type: "LOGOUT",
   };
 };
+
+// 新增 action
+export const setTokenExpired = (expired) => ({
+  type: "SET_TOKEN_EXPIRED",
+  payload: expired,
+});

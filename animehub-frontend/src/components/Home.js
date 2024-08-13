@@ -16,6 +16,7 @@ import {
   CardActions,
   Avatar,
   LinearProgress,
+  Grid,
 } from "@mui/material";
 import { styled } from "@mui/system";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
@@ -130,7 +131,7 @@ const Home = () => {
 
   //函数限制字数
   const truncatedSynopsisForTitle = (text) => {
-    return text.length > 15 ? text.substring(0, 18) + "..." : text;
+    return text.length > 10 ? text.substring(0, 14) + "..." : text;
   };
 
   //更新搜索框的输入值
@@ -167,53 +168,86 @@ const Home = () => {
       <Container maxWidth={false}>
         {/* 热门日推 */}
         <Box sx={{ padding: 3 }}>
-          <Typography variant="h4" gutterBottom>
-            热门日推
-          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Box
+              sx={{
+                width: 4,
+                height: 40, // 你可以根据需要调整高度
+                backgroundColor: "#ed6000",
+                marginRight: 2,
+              }}
+            />
+            <Typography variant="h4" gutterBottom sx={{ mt: 2 }}>
+              热门日推
+            </Typography>
+          </Box>
           <Box
             sx={{
               border: "1px solid #ddd",
               backgroundColor: "#fff",
               borderRadius: "16px",
-              boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-              padding: 1,
-              display: "flex",
               position: "relative",
+              boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+              padding: 2,
+              mt: 3,
             }}
           >
-            {recommendations.map((anime) => (
-              <Box
-                key={anime.mal_id}
-                onClick={() => handleCardClick(anime.mal_id)}
-                sx={{
-                  cursor: "pointer",
-                  padding: 1,
-                  marginRight: 2,
-                  borderRadius: "16px",
-                  transition: "transform 0.3s ease-in-out", // 添加过渡效果
-                  "&:hover": {
-                    transform: "scale(1.2)", // 悬停时放大5%
-                  },
-                }}
-              >
-                <Avatar
-                  alt={anime.title_japanese}
-                  src={anime.images.jpg.large_image_url}
-                  variant="square"
-                  sx={{ width: 189, height: 252, borderRadius: "8px" }}
-                />
-                <Typography variant="h6" align="center" sx={{ mt: 2 }}>
-                  {truncatedSynopsisForTitle(anime.title_japanese)}
-                </Typography>
-              </Box>
-            ))}
+            <Grid container spacing={1}>
+              {recommendations.map((anime) => (
+                <Grid item xs={12} sm={6} md={2} key={anime.mal_id}>
+                  <Box
+                    onClick={() => handleCardClick(anime.mal_id)}
+                    sx={{
+                      cursor: "pointer",
+                      borderRadius: "16px",
+                      transition: "transform 0.3s ease-in-out",
+                      padding: 2,
+                      "&:hover": {
+                        transform: "scale(1.1)",
+                      },
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      overflow: "hidden",
+                      height: "100%",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: "100%",
+                        paddingTop: "133%",
+                        position: "relative",
+                      }}
+                    >
+                      <Avatar
+                        alt={anime.title_japanese}
+                        src={anime.images.jpg.large_image_url}
+                        variant="square"
+                        sx={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          width: "100%",
+                          height: "100%",
+                          borderRadius: "8px",
+                          objectFit: "cover",
+                        }}
+                      />
+                    </Box>
+                    <Typography variant="h6" align="center" sx={{ mt: 2 }}>
+                      {truncatedSynopsisForTitle(anime.title_japanese)}
+                    </Typography>
+                  </Box>
+                </Grid>
+              ))}
+            </Grid>
             <IconButton
               onClick={handleNextPage}
               disabled={loading}
               sx={{
                 position: "absolute",
                 right: 40,
-                bottom: -30,
+                bottom: -40,
                 backgroundColor: "#ed6000",
                 borderRadius: "50%",
                 boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
@@ -233,9 +267,19 @@ const Home = () => {
 
         {/* 新鲜帖子 */}
         <Box sx={{ padding: 3 }}>
-          <Typography variant="h4" gutterBottom>
-            新鲜帖子
-          </Typography>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Box
+              sx={{
+                width: 4,
+                height: 40, // 你可以根据需要调整高度
+                backgroundColor: "#ed6000",
+                marginRight: 2,
+              }}
+            />
+            <Typography variant="h4" gutterBottom sx={{ mt: 2 }}>
+              新鲜帖子
+            </Typography>
+          </Box>
           <Box
             sx={{
               border: "1px solid #ddd",

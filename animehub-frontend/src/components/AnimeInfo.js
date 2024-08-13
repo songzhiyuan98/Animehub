@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import LoginPromptDialog from "./LoginPromptDialog";
 import { useNavigate } from "react-router-dom"; //导航钩子
+import Comment from "./Comment"; // 确保路径正确
 import {
   Button,
   Container,
@@ -12,10 +13,13 @@ import {
   Box,
   IconButton,
   LinearProgress,
+  CircularProgress,
   Avatar,
+  TextField,
 } from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import io from "socket.io-client"; //websocket客户端，前端还未安装依赖
 
 const AnimeInfo = () => {
   const { id } = useParams();
@@ -26,72 +30,156 @@ const AnimeInfo = () => {
   const [anime, setAnime] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setDialogOpen] = useState(false);
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState("");
+  const [isCommentsLoading, setIsCommentsLoading] = useState(true); //监控评论获取加载状态
 
-  useEffect(() => {
-    const fetchAnimeDetails = async () => {
-      try {
-        const response = await axiosInstance.get(
-          `http://localhost:3000/api/anime/${id}`
-        );
-        setAnime(response.data.data);
-        console.log(userId);
-        console.log(typeof userId);
-        console.log(id);
-        console.log(typeof id);
-      } catch (error) {
-        console.error("Error fetching anime details:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAnimeDetails();
+  //监听动漫id变化获取动漫详情
+  const fetchAnimeDetails = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await axiosInstance.get(
+        `http://localhost:3000/api/anime/${id}`
+      );
+      setAnime(response.data.data);
+    } catch (error) {
+      console.error("Error fetching anime details:", error);
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
 
-  useEffect(() => {
-    const fetchAnimeDetails = async () => {
+  const fetchComments = useCallback(async () => {
+    setIsCommentsLoading(true);
+    try {
+      const response = await axiosInstance.get(
+        `http://localhost:3000/api/anime/${id}/comments`
+      );
+      setComments(response.data);
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+    } finally {
+      setIsCommentsLoading(false);
+    }
+  }, [id]);
+
+  const checkFavoriteStatus = useCallback(async () => {
+    if (isLoggedIn && userId) {
       try {
         const response = await axiosInstance.get(
-          `http://localhost:3000/api/anime/${id}`
+          `http://localhost:3000/api/favorites/check/${userId}/${id}`
         );
-        setAnime(response.data.data);
+        setIsFavorite(response.data.isFavorite);
       } catch (error) {
-        console.error("Error fetching anime details:", error);
-      } finally {
-        setLoading(false);
+        console.error("Error checking favorite status:", error);
       }
-    };
+    }
+  }, [isLoggedIn, userId, id]);
 
-    const checkFavoriteStatus = async () => {
-      if (isLoggedIn && userId) {
-        try {
-          const response = await axiosInstance.get(
-            `http://localhost:3000/api/favorites/check/${userId}/${id}`
-          );
-          setIsFavorite(response.data.isFavorite);
-        } catch (error) {
-          console.error("Error checking favorite status:", error);
-        }
-      }
-    };
-
+  useEffect(() => {
     fetchAnimeDetails();
+    fetchComments();
     checkFavoriteStatus();
-  }, [id, userId, isLoggedIn]);
+  }, [fetchAnimeDetails, fetchComments, checkFavoriteStatus]);
+
+  useEffect(() => {
+    const socket = io("http://localhost:3000");
+
+    socket.on("connect", () => {
+      console.log("WebSocket connected");
+      socket.emit("join", id);
+    });
+
+    socket.on("disconnect", () => console.log("WebSocket disconnected"));
+
+    socket.on("newComment", (data) => {
+      if (data.animeId === id) {
+        setComments((prevComments) => [data.comment, ...prevComments]);
+      }
+    });
+
+    socket.on("newReply", (data) => {
+      if (data.animeId === id) {
+        setComments((prevComments) =>
+          updateReplies(prevComments, data.parentCommentId, data.reply)
+        );
+      }
+    });
+
+    return () => socket.disconnect();
+  }, [id]);
 
   const navigate = useNavigate();
+
+  //处理添加评论函数，修改过还未验证，修改了不保存结果到newComment，通过websocket监听来实时更新
+  const handleAddComment = async () => {
+    if (!newComment.trim()) return;
+    try {
+      const response = await axiosInstance.post(
+        `http://localhost:3000/api/anime/${id}/comments`,
+        {
+          content: newComment,
+        }
+      );
+      setNewComment(""); // 清空评论输入框
+      // 移除了手动更新 comments 的逻辑，现在由 WebSocket 处理
+    } catch (error) {
+      console.error("Error adding comment:", error);
+    }
+  };
+
+  const handleReply = async (parentId, content) => {
+    if (!content.trim()) return;
+    try {
+      const response = await axiosInstance.post(
+        `http://localhost:3000/api/comments/${parentId}/reply`,
+        {
+          content: content,
+        }
+      );
+      // 立即更新本地状态
+      setComments((prevComments) =>
+        updateReplies(prevComments, parentId, response.data)
+      );
+    } catch (error) {
+      console.error("Error replying to comment:", error);
+    }
+  };
+
+  // 保留 updateReplies 函数，以备需要本地更新时使用
+  const updateReplies = (comments, parentId, newReply) => {
+    return comments.map((comment) => {
+      if (comment._id === parentId) {
+        return {
+          ...comment,
+          replies: [...(comment.replies || []), newReply],
+        };
+      } else if (comment.replies && comment.replies.length > 0) {
+        return {
+          ...comment,
+          replies: updateReplies(comment.replies, parentId, newReply),
+        };
+      }
+      return comment;
+    });
+  };
+
   //处理动漫播放按钮点击事件
   const handlePlayButton = (mal_id) => {
     navigate(`/anime-video/${mal_id}`);
   };
 
+  //处理弹窗跳出
   const handleOpenDialog = () => {
     setDialogOpen(true);
   };
 
+  //处理关闭弹窗
   const handleCloseDialog = () => {
     setDialogOpen(false);
   };
 
+  //处理收藏按钮点击事件函数
   const handleFavoriteToggle = () => {
     console.log("Toggling favorite for anime:", id);
     if (isFavorite) {
@@ -119,10 +207,13 @@ const AnimeInfo = () => {
     }
   };
 
+  //限制字符300子以内函数
   const truncatedSynopsis = (text) => {
+    if (!text) return ""; // 如果 text 是 null 或 undefined，返回空字符串
     return text.length > 300 ? text.substring(0, 300) + "..." : text;
   };
 
+  //加载动画
   if (loading) {
     return (
       <Box
@@ -133,6 +224,7 @@ const AnimeInfo = () => {
     );
   }
 
+  //动漫id不存在找不到动漫显示
   if (!anime) {
     return (
       <Box
@@ -149,6 +241,7 @@ const AnimeInfo = () => {
     );
   }
 
+  //主要页面具体实现渲染
   return (
     <Box
       sx={{ backgroundColor: "#F2F2F2", minHeight: "100vh", color: "#333333" }}
@@ -246,7 +339,7 @@ const AnimeInfo = () => {
                 </Box>
                 <Button
                   color="primary"
-                  sx={{ position: "absolute", right: 0, bottom: 0 }}
+                  sx={{ position: "absolute", right: 0, bottom: 10 }}
                 >
                   查看更多
                 </Button>
@@ -271,7 +364,7 @@ const AnimeInfo = () => {
                 position: "absolute",
                 right: 140,
                 bottom: -30,
-                backgroundColor: isFavorite ? "#ff6f61" : "#ed6000",
+                backgroundColor: isFavorite ? "#ed6000" : "#ed6000",
                 borderRadius: "50%",
                 boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
                 color: "#fff",
@@ -321,6 +414,62 @@ const AnimeInfo = () => {
             >
               <PlayArrowIcon sx={{ fontSize: 36 }} />
             </IconButton>
+          </Box>
+        </Box>
+
+        {/* 评论部分 */}
+        <Box sx={{ padding: 3 }}>
+          <Typography variant="h4" gutterBottom>
+            评论
+          </Typography>
+          <Box
+            sx={{
+              border: "1px solid #ddd",
+              backgroundColor: "#fff",
+              borderRadius: "16px",
+              boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+              minHeight: "20vh",
+              padding: 4,
+              mt: 3,
+              display: "flex",
+              flexDirection: "column",
+              position: "relative",
+            }}
+          >
+            {isLoggedIn ? (
+              <Box sx={{ mb: 2 }}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={3}
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="写下你的评论..."
+                />
+                <Button onClick={handleAddComment} sx={{ mt: 1 }}>
+                  发表评论
+                </Button>
+              </Box>
+            ) : null}
+            {isCommentsLoading ? (
+              <CircularProgress />
+            ) : (
+              comments.map((comment) => (
+                <Comment
+                  key={comment._id}
+                  comment={comment}
+                  onReply={handleReply}
+                  currentUser={user}
+                />
+              ))
+            )}
+            {!isLoggedIn && (
+              <Box sx={{ textAlign: "center", mt: "auto" }}>
+                <Typography variant="body1" sx={{ mt: 1 }}>
+                  请登录后发表评论
+                </Typography>
+              </Box>
+            )}
           </Box>
         </Box>
       </Container>
