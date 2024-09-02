@@ -14,6 +14,7 @@ const notificationReducer = (state = initialState, action) => {
         notifications: action.payload,
       };
     case "ADD_NOTIFICATION":
+      console.log("Reducer received ADD_NOTIFICATION action:", action.payload);
       return {
         ...state,
         notifications: [action.payload, ...state.notifications],
@@ -30,6 +31,7 @@ const notificationReducer = (state = initialState, action) => {
         unreadCount: Math.max(0, state.unreadCount - 1),
       };
     case "CLEAR_NOTIFICATIONS":
+      console.log("已清理通知缓存redux");
       return {
         ...state,
         notifications: [],

@@ -25,6 +25,7 @@ const websocketMiddleware = () => {
 
         // 监听新通知
         socket.on("newNotification", (notification) => {
+          console.log("Redux Received new notification:", notification);
           store.dispatch(addNotification(notification));
         });
 

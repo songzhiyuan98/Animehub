@@ -1,0 +1,10 @@
+/* src/styles.css */
+.highlight {
+  background-color: rgba(0, 0, 0, 0.1); /* 使用灰色的透明背景作为高亮 */
+  transition: background-color 0.5s ease-in-out; /* 较短的渐变时间 */
+}
+
+.highlight-remove {
+  background-color: "F2F2F2"; /* 恢复为透明 */
+  transition: background-color 0.5s ease-in-out; /* 渐变恢复 */
+}

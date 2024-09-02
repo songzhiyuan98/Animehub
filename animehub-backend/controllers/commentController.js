@@ -3,6 +3,7 @@
 
 const Comment = require("../models/Comment"); //导入comment数据库集合
 const NotificationService = require("../utils/notificationService"); //获取通知服务函数
+const FavoriteAnime = require("../models/FavoriteAnime"); //获取动漫收藏数据库
 const { getIO } = require("../config/websocket"); //获取websocket服务器
 
 //处理嵌套评论
@@ -57,7 +58,7 @@ exports.postComment = async (req, res) => {
     );
 
     //使用notificationSerive创建通知
-    await NotificationService.notifyAnimeComment(
+    const notifications = await NotificationService.notifyAnimeComment(
       req.params.animeId,
       populatedComment._id,
       req.user.userId
@@ -65,20 +66,12 @@ exports.postComment = async (req, res) => {
 
     const io = getIO();
 
-    // 查找收藏了这个动漫的所有用户
-    const favoritedUsers = await FavoriteAnime.find({
-      mal_id: req.params.animeId,
-    });
-
-    // 向所有收藏了这个动漫的用户发送 WebSocket 通知
-    favoritedUsers.forEach((favorite) => {
-      if (favorite.userId.toString() !== req.user.userId.toString()) {
-        io.to(favorite.userId.toString()).emit("newNotification", {
-          type: "newComment",
-          animeId: req.params.animeId,
-          comment: populatedComment,
-        });
-      }
+    // 通过 WebSocket 发送创建的通知
+    notifications.forEach((notification) => {
+      io.to(notification.recipient.toString()).emit(
+        "newNotification",
+        notification
+      );
     });
 
     //发送websocket通知
@@ -121,7 +114,7 @@ exports.replyToComment = async (req, res) => {
     );
 
     // 使用 NotificationService 创建回复通知
-    await NotificationService.notifyCommentReply(
+    const notification = await NotificationService.notifyCommentReply(
       parentComment._id,
       populatedReply._id,
       req.user.userId,
@@ -130,12 +123,39 @@ exports.replyToComment = async (req, res) => {
     );
     const io = getIO();
 
+    console.log("parentComment.userId:", parentComment.userId.toString());
+    console.log("req.user.userId:", req.user.userId.toString());
+
+    // 发送 WebSocket 通知给父评论的作者
+    if (notification) {
+      io.to(notification.recipient.toString()).emit(
+        "newNotification",
+        notification
+      );
+    }
+
     // 发送 WebSocket 通知
-    io.to(parentComment.userId.toString()).emit("newReply", {
+    io.to(parentComment.animeId).emit("newReply", {
       reply: populatedReply,
       parentCommentId: parentComment._id,
       animeId: parentComment.animeId,
     });
+
+    console.log(
+      `WebSocket消息已发送给用户: ${parentComment.userId.toString()}`
+    );
+    console.log(
+      "发送的消息内容:",
+      JSON.stringify(
+        {
+          reply: populatedReply,
+          parentCommentId: parentComment._id,
+          animeId: parentComment.animeId,
+        },
+        null,
+        2
+      )
+    );
 
     res.status(201).json(populatedReply);
   } catch (error) {

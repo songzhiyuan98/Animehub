@@ -1,11 +1,13 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import LoginPromptDialog from "./LoginPromptDialog";
 import { useNavigate } from "react-router-dom"; //导航钩子
 import Comment from "./Comment"; // 确保路径正确
+import "../style.css"; // 确保路径正确
 import {
   Button,
   Container,
@@ -33,6 +35,31 @@ const AnimeInfo = () => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [isCommentsLoading, setIsCommentsLoading] = useState(true); //监控评论获取加载状态
+  const location = useLocation();
+
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const commentId = queryParams.get("commentId");
+
+    if (commentId) {
+      setTimeout(() => {
+        const commentElement = document.getElementById(commentId);
+        if (commentElement) {
+          commentElement.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+          commentElement.classList.add("highlight");
+
+          // 第一次移除高亮效果
+          setTimeout(() => {
+            commentElement.classList.remove("highlight");
+            commentElement.classList.add("highlight-remove");
+          }, 1000); // 500ms后移除第一次高亮效果
+        }
+      }, 300); // 延迟100ms以确保元素已渲染
+    }
+  }, [location]);
 
   //监听动漫id变化获取动漫详情
   const fetchAnimeDetails = useCallback(async () => {
@@ -94,15 +121,23 @@ const AnimeInfo = () => {
 
     socket.on("newComment", (data) => {
       if (data.animeId === id) {
+        console.log("Received new comment:", data);
         setComments((prevComments) => [data.comment, ...prevComments]);
       }
     });
 
     socket.on("newReply", (data) => {
       if (data.animeId === id) {
-        setComments((prevComments) =>
-          updateReplies(prevComments, data.parentCommentId, data.reply)
-        );
+        console.log("Received new reply:", data);
+        setComments((prevComments) => {
+          const updatedComments = updateReplies(
+            prevComments,
+            data.parentCommentId,
+            data.reply
+          );
+          console.log("Updated comments with new reply:", updatedComments);
+          return updatedComments;
+        });
       }
     });
 
@@ -150,9 +185,14 @@ const AnimeInfo = () => {
   const updateReplies = (comments, parentId, newReply) => {
     return comments.map((comment) => {
       if (comment._id === parentId) {
+        const replies = comment.replies || [];
+
+        // 检查新回复是否已经存在
+        const replyExists = replies.some((reply) => reply._id === newReply._id);
+
         return {
           ...comment,
-          replies: [...(comment.replies || []), newReply],
+          replies: replyExists ? replies : [...replies, newReply],
         };
       } else if (comment.replies && comment.replies.length > 0) {
         return {
@@ -424,12 +464,7 @@ const AnimeInfo = () => {
           </Typography>
           <Box
             sx={{
-              border: "1px solid #ddd",
-              backgroundColor: "#fff",
-              borderRadius: "16px",
-              boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
               minHeight: "20vh",
-              padding: 4,
               mt: 3,
               display: "flex",
               flexDirection: "column",

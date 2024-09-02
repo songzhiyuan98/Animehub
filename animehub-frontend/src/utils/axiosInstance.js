@@ -1,6 +1,7 @@
 import axios from "axios"; // 导入axios库
 import { logout, setTokenExpired } from "../redux/actions/userActions"; // 从userActions导入logout和setTokenExpired动作
 import store from "../redux/store"; // 导入Redux store
+import { clearNotifications } from "../redux/actions/notificationActions";
 
 // 创建一个axios实例，设置基础URL
 const axiosInstance = axios.create({
@@ -75,6 +76,7 @@ axiosInstance.interceptors.response.use(
           console.log("Logging out due to refresh token failure");
           tokenManager.clearTokens(); // 清除所有令牌
           store.dispatch(logout()); // 延迟执行登出操作
+          store.dispatch(clearNotifications()); // 清楚消息列表缓存
         }, 1000);
         return Promise.reject(refreshError);
       }

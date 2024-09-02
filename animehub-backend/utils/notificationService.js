@@ -45,18 +45,33 @@ class NotificationService {
   //动漫详情页主评论发送多条通知，接受动漫id，评论id，发送userid为参数
   static async notifyAnimeComment(animeId, commentId, senderId) {
     const favoriteUsers = await FavoriteAnime.find({ mal_id: animeId }); //根据动漫id查找所有收藏有该动漫的收藏对象
-    const notifications = favoriteUsers.map((favorite) => ({
-      recipient: favorite.userId, //接收者是所有收藏该动漫的user
-      sender: senderId, //发送着userid来自参数
-      type: "comment", //类型comment
-      contentType: "anime", //评论类型anime
-      contentId: animeId, //被评论内容id
-      commentId: commentId, //评论id
-    }));
+    const notifications = favoriteUsers
+      .filter((favorite) => favorite.userId.toString() !== senderId.toString()) // 排除发送者自己
+      .map((favorite) => ({
+        recipient: favorite.userId, //接收者是所有收藏该动漫的user
+        sender: senderId, //发送着userid来自参数
+        type: "comment", //类型comment
+        contentType: "anime", //评论类型anime
+        contentId: animeId, //被评论内容id
+        commentId: commentId, //评论id
+      }));
 
     if (notifications.length > 0) {
-      await this.createManyNotifications(notifications); //创建通知对象数组
+      const createdNotifications = await Notification.create(notifications);
+
+      // 使用 populate 填充 sender 和 commentId 的详细信息
+      const populatedNotifications = await Notification.populate(
+        createdNotifications,
+        [
+          { path: "sender", select: "nickname avatar" },
+          { path: "commentId", select: "content" },
+        ]
+      );
+
+      return populatedNotifications;
     }
+
+    return [];
   }
 
   //回复评论通知，发送一条通知给父评论用户，接受参数父评论id，回复评论id，发送者id，内容类型，内容id
@@ -72,7 +87,7 @@ class NotificationService {
       parentComment &&
       parentComment.userId.toString() !== senderId.toString() //确保评论回复者和父评论发布者不是同一人
     ) {
-      await this.createNotification({
+      const notification = await this.createNotification({
         recipient: parentComment.userId, //接收者父评论发送者
         sender: senderId, //发送者来自于函数参数
         type: "reply", //类型reply
@@ -80,7 +95,17 @@ class NotificationService {
         contentId: contentId, //内容id来自于参数
         commentId: replyId, //评论id，来自参数回复id
       });
+
+      // 使用 populate 填充 sender 和 commentId 的详细信息
+      const populatedNotification = await Notification.populate(notification, [
+        { path: "sender", select: "nickname avatar" },
+        { path: "commentId", select: "content" },
+      ]);
+
+      return populatedNotification;
     }
+
+    return null;
   }
 
   //发送帖子评论通知，发送给帖子发布者，接受参数发送id，评论id，帖子id
@@ -109,7 +134,7 @@ class NotificationService {
         // 按创建时间降序排序
         .sort({ createdAt: -1 })
         // 填充发送者信息，只包括用户名和头像
-        .populate("sender", "username avatar")
+        .populate("sender", "nickname avatar")
         // 填充评论内容
         .populate("commentId", "content");
       // 返回查询结果

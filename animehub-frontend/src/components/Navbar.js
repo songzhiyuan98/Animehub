@@ -10,12 +10,17 @@ import {
   Avatar,
   Button,
   Tooltip,
+  Badge,
   MenuItem,
 } from "@mui/material"; //materui组件
 import MenuIcon from "@mui/icons-material/Menu"; //menu图标
 import { Link } from "react-router-dom"; //react链接功能
 import { useSelector, useDispatch } from "react-redux"; //redux选择器，派发
 import { logout } from "../redux/actions/userActions"; //登出redux reducer
+import {
+  clearNotifications,
+  fetchUnreadCount,
+} from "../redux/actions/notificationActions";
 
 //定义导航栏页面
 const pages = [
@@ -31,6 +36,7 @@ const Navbar = () => {
   const dispatch = useDispatch(); //获取redux dispatch函数
   const isLoggedIn = useSelector((state) => state.user.isLoggedIn); //从redux中用选择器函数获取登录状态
   const user = useSelector((state) => state.user.user); //从redux中获取用户信息，若不在登录状态，此函数默认返回null
+  const unreadCount = useSelector((state) => state.notifications.unreadCount); // 获取未读消息数量
   const BASE_URL = "http://localhost:3000";
 
   const [anchorElNav, setAnchorElNar] = React.useState(null); //定义导航菜单锚点状态
@@ -44,6 +50,12 @@ const Navbar = () => {
       setAvatarSrc("/path/to/default/avatar.png"); // 默认头像
     }
   }, [user]);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      dispatch(fetchUnreadCount()); // 获取未读消息数量
+    }
+  }, [dispatch, isLoggedIn]);
 
   //打开导航菜单函数,接收一个event作为参数，是点击按钮的名称,pages的属性
   const handleOpenNavMenu = (event) => {
@@ -68,6 +80,7 @@ const Navbar = () => {
   //登出函数
   const handleLogout = () => {
     dispatch(logout()); //执行登出操作
+    dispatch(clearNotifications()); //清除通知缓存
     handleCloseUserMenu(); //关闭用户菜单栏
   };
 
@@ -175,7 +188,16 @@ const Navbar = () => {
               <>
                 <Tooltip title="Open settings">
                   <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                    <Avatar alt={user?.username} src={avatarSrc} />
+                    <Badge
+                      badgeContent={unreadCount} // 显示未读消息数量
+                      color="error"
+                      anchorOrigin={{
+                        vertical: "bottom",
+                        horizontal: "right",
+                      }}
+                    >
+                      <Avatar alt={user?.username} src={avatarSrc} />
+                    </Badge>
                   </IconButton>
                 </Tooltip>
                 <Menu
