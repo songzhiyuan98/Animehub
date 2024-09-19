@@ -16,6 +16,7 @@ const commentRoutes = require("./routes/commentRoutes"); //导入评论相关的
 const postRoutes = require("./routes/postRoutes"); //导入帖子相关的路由
 const animeRoutes = require("./routes/animeRoutes"); // 更改名称
 const notificationRoutes = require("./routes/notificationRoutes"); // 添加这行
+const tagRoutes = require("./routes/tagRoutes"); // 添加这行
 require("dotenv").config(); //加载环境变量
 
 const app = express();
@@ -28,15 +29,17 @@ connectDB(); //连接数据库
 setupWebSocket(server); // 添加这行
 
 app.use(cors()); //启用cors中间件
-app.use(express.json()); //启用epxress json中间件获取请求头
+app.use(express.json({ limit: '50mb' })); //启用epxress json中间件获取请求头
+app.use(express.urlencoded({ limit: '50mb', extended: true })); //启用epxress urlencoded中间件
 app.use("/uploads", express.static(path.join(__dirname, "uploads"))); //配置静态文件让外界可以访问特定文件夹
-app.use("/avatars", express.static(path.join(__dirname, "avatars"))); // 配置头像目录的静态文件服务
+app.use("/avatars", express.static(path.join(__dirname, "avatars"))); // 配置头像目录的静态文件务
 
 app.use("/api", authRoutes); //定义访问认证相关路由的路径
 app.use("/api", commentRoutes); //定义访问评论相关路由的路径
 app.use("/api", postRoutes); //定义访问帖子相关路由的路径
 app.use("/api", animeRoutes); // 更改路径
 app.use("/api/notifications", notificationRoutes); // 添加这行
+app.use("/api", tagRoutes); // 添加这行
 
 //监听端口3000
 server.listen(port, () => {

@@ -20,6 +20,7 @@ import {
   disconnectWebSocket,
   fetchNotifications,
 } from "./redux/actions/notificationActions";
+import PostDetail from './components/PostDetail';
 
 const App = () => {
   const dispatch = useDispatch();
@@ -89,6 +90,7 @@ const App = () => {
         />
         <Route path="/anime/:id" element={<AnimeInfo />} />{" "}
         <Route path="/anime-video/:id" element={<AnimeVideo />} />{" "}
+        <Route path="/post/:id" element={<PostDetail />} />
         {/* 配置 AnimeInfo 路由 */}
       </Routes>
     </Router>

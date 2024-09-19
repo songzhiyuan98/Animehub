@@ -68,81 +68,58 @@ const Messages = () => {
           notifications.map((notification) => (
             <Box
               key={notification._id}
+              onClick={() => handleCardClick(notification)}
               sx={{
-                backgroundColor: "rgba(255, 255, 255, 0.6)",
-                borderRadius: "16px",
-                padding: 3,
-                mb: 2,
+                marginBottom: 2,
                 display: "flex",
-                alignItems: "flex-start",
-                width: "100%", // 确保每个通知卡片占满宽度
-                boxSizing: "border-box", // 确保padding不会增加宽度
-                "@supports (-webkit-backdrop-filter: none) or (backdrop-filter: none)":
-                  {
-                    backdropFilter: "blur(10px)",
-                    WebkitBackdropFilter: "blur(10px)",
-                  },
-                transition: "box-shadow 0.3s ease-in-out",
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: 2,
+                borderRadius: "16px",
+                cursor: "pointer",
+                transition: "all 0.3s ease-out",
+                border: "1px solid #ddd",
+                backgroundColor: "#fff",
+                boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
                 "&:hover": {
-                  boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-                  cursor: "pointer",
+                  backgroundColor: "rgba(237, 96, 0, 0.05)",
+                  transform: "translateY(-4px) scale(1.02)",
+                  boxShadow: "0 8px 16px rgba(237, 96, 0, 0.2)",
+                  border: "1px solid #ed6000",
                 },
               }}
-              onClick={() => handleCardClick(notification)}
             >
-              <Avatar
-                alt={notification.sender.nickname}
-                src={`${BASE_URL}${notification.sender.avatar}`}
-                sx={{ width: 50, height: 50, mr: 2, flexShrink: 0 }} // 防止头像缩小
-              />
-              <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-                {" "}
-                <Typography
-                  variant="subtitle1"
-                  color="text.primary"
-                  fontWeight="bold"
-                  sx={{ wordBreak: "break-word" }}
-                >
-                  {notification.sender.nickname}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  color="text.primary"
-                  sx={{ wordBreak: "break-word" }}
-                >
-                  {notification.type === "reply"
-                    ? "回复了你的评论"
-                    : "评论了你的收藏"}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ mt: 1, wordBreak: "break-word" }}
-                >
-                  {truncateText(notification.commentId.content, 50)}{" "}
-                  {/* 限制内容字数为50 */}
-                </Typography>
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ display: "block", mt: 1 }}
-                >
-                  {new Date(notification.createdAt).toLocaleString()}
-                </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", flex: 1 }}>
+                <Avatar
+                  alt={notification.sender.nickname}
+                  src={`${BASE_URL}${notification.sender.avatar}`}
+                  sx={{ width: 50, height: 50, mr: 2 }}
+                />
+                <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                  <Typography variant="subtitle1" fontWeight="bold" sx={{ wordBreak: "break-word" }}>
+                    {notification.sender.nickname}
+                  </Typography>
+                  <Typography variant="body2" sx={{ wordBreak: "break-word" }}>
+                    {notification.type === "reply" ? "回复了你的评论" : "评论了你的收藏"}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1, wordBreak: "break-word" }}>
+                    {truncateText(notification.commentId.content, 50)}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>
+                    {new Date(notification.createdAt).toLocaleString()}
+                  </Typography>
+                </Box>
               </Box>
-              <Box sx={{ display: "flex", flexDirection: "column" }}>
+              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end", ml: 2 }}>
                 <Typography
                   variant="caption"
-                  color={notification.read ? "text.secondary" : "error"} // 未读消息用红色标识
-                  sx={{ marginRight: 1 }}
+                  color={notification.read ? "text.secondary" : "error"}
+                  sx={{ mb: 1 }}
                 >
                   {notification.read ? "已读" : "未读"}
                 </Typography>
-                <IconButton
-                  edge="end"
-                  aria-label="notification type"
-                  sx={{ flexShrink: 0 }}
-                >
+                <IconButton edge="end" aria-label="notification type">
                   {getIcon(notification.type)}
                 </IconButton>
               </Box>

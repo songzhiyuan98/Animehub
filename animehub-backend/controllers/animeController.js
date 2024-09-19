@@ -1,14 +1,20 @@
-//作用：处理动漫相关的逻辑。
-//功能：getDailyRecommendations：获取每日推荐的动漫，包括调用外部 API 获取数据、随机选择推荐内容。
+// 作用：处理动漫相关的逻辑。
+// 功能：
+// - getDailyRecommendations：获取每日推荐的动漫，包括调用外部 API 获取数据、随机选择推荐内容。
+// - getAnimeById：获取特定动漫的详细信息。
+// - addToFavorites：将动漫添加到用户的收藏列表。
+// - getFavorites：获取用户的收藏动漫列表。
+// - removeFromFavorites：从用户的收藏列表中移除动漫。
+// - checkFavorites：检查特定动漫是否在用户的收藏列表中。
 
-const axios = require("axios"); //导入axios模块
-const User = require("../models/User"); //导入user数据库集合
-const FavoriteAnime = require("../models/FavoriteAnime");
-const mongoose = require("mongoose");
-const ObjectId = mongoose.Types.ObjectId;
-const NodeCache = require("node-cache");
+const axios = require("axios"); // 导入axios模块用于发送HTTP请求
+const User = require("../models/User"); // 导入用户数据库模型
+const FavoriteAnime = require("../models/FavoriteAnime"); // 导入收藏动漫数据库模型
+const mongoose = require("mongoose"); // 导入mongoose模块
+const ObjectId = mongoose.Types.ObjectId; // 获取ObjectId类型
+const NodeCache = require("node-cache"); // 导入node-cache模块用于缓存
 
-const animeCache = new NodeCache({ stdTTL: 3600 }); // 缓存1小时
+const animeCache = new NodeCache({ stdTTL: 3600 }); // 创建缓存实例，设置标准生存时间为1小时
 
 // 获取日推动漫函数
 exports.getDailyRecommendations = async (req, res) => {
@@ -17,7 +23,7 @@ exports.getDailyRecommendations = async (req, res) => {
     const allRecommendations = response.data.data;
 
     const page = parseInt(req.query.page) || 0; // 获取页码，默认为0
-    const numOfRecommendations = 6;
+    const numOfRecommendations = 6; // 每页推荐数量
 
     // 计算起始和结束索引
     const startIndex = page * numOfRecommendations;
@@ -37,7 +43,7 @@ exports.getDailyRecommendations = async (req, res) => {
   } catch (error) {
     res
       .status(500)
-      .send("Error fetching daily recommendations: " + error.message);
+      .send("获取每日推荐时出错: " + error.message);
   }
 };
 
@@ -60,13 +66,14 @@ exports.getAnimeById = async (req, res) => {
 
     res.status(200).json(response.data);
   } catch (error) {
-    console.error("Error fetching anime details:", error);
+    console.error("获取动漫详情时出错:", error);
     res
       .status(500)
-      .json({ message: "Error fetching anime details", error: error.message });
+      .json({ message: "获取动漫详情时出错", error: error.message });
   }
 };
 
+// 添加动漫到收藏列表
 exports.addToFavorites = async (req, res) => {
   const { userId, animeId } = req.body;
 
@@ -89,19 +96,20 @@ exports.addToFavorites = async (req, res) => {
 
     res
       .status(200)
-      .json({ message: "Anime added to favorites", favoriteAnime });
+      .json({ message: "动漫已添加到收藏", favoriteAnime });
   } catch (error) {
     if (error.code === 11000) {
-      // MongoDB duplicate key error
+      // MongoDB重复键错误
       return res
         .status(400)
-        .json({ message: "This anime is already in your favorites" });
+        .json({ message: "该动漫已在您的收藏列表中" });
     }
-    console.error("Error adding anime to favorites:", error);
-    res.status(500).json({ message: "Error adding anime to favorites" });
+    console.error("添加动漫到收藏时出错:", error);
+    res.status(500).json({ message: "添加动漫到收藏时出错" });
   }
 };
 
+// 获取用户收藏的动漫列表
 exports.getFavorites = async (req, res) => {
   let { userId } = req.params;
 
@@ -119,13 +127,14 @@ exports.getFavorites = async (req, res) => {
     const favorites = await FavoriteAnime.find(query).sort({ dateAdded: -1 });
     res.status(200).json(favorites);
   } catch (error) {
-    console.error("Error fetching favorites:", error);
+    console.error("获取收藏列表时出错:", error);
     res
       .status(500)
-      .json({ message: "Error fetching favorites", error: error.toString() });
+      .json({ message: "获取收藏列表时出错", error: error.toString() });
   }
 };
 
+// 从收藏列表中移除动漫
 exports.removeFromFavorites = async (req, res) => {
   const { userId, animeId } = req.body;
 

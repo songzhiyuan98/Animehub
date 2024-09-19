@@ -40,7 +40,6 @@ exports.getAnimeComments = async (req, res) => {
     res.status(500).send("服务器错误");
   }
 };
-
 //发表评论，接受路径参数animeId，请求头参数content，http://localhost:3000/api/anime/52291/comments
 exports.postComment = async (req, res) => {
   try {
@@ -140,7 +139,6 @@ exports.replyToComment = async (req, res) => {
       parentCommentId: parentComment._id,
       animeId: parentComment.animeId,
     });
-
     console.log(
       `WebSocket消息已发送给用户: ${parentComment.userId.toString()}`
     );

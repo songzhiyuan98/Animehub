@@ -19,51 +19,60 @@ const UserCenter = () => {
   };
 
   return (
-    <Box sx={{ display: "flex" }}>
-      <Tabs
-        orientation="vertical"
-        value={selectedTab}
-        onChange={handleTabChange}
-        aria-label="Personal Center Tabs"
+    <Box sx={{ display: "flex", minHeight: "100vh", backgroundColor: "#F2F2F2" }}>
+      <Box
         sx={{
-          borderRight: 1,
-          borderColor: "divider",
-          width: "8%", // 使用百分比宽度，让侧边栏自适应布局
-          minWidth: "8%", // 设置一个最小宽度，以避免在非常小的屏幕上侧边栏过窄
+          width: "9%",
+          minWidth: "9%",
+          position: "sticky",
+          top: 0,
           height: "100vh",
           backgroundColor: "#F2F2F2",
+          borderRight: 1,
+          borderColor: "divider",
         }}
       >
-        <Tab label="个人资料" />
-        <Tab
-          label={
-            <Badge
-              variant="dot"
-              color="error"
-              invisible={unreadCount === 0} // 如果没有未读消息，小红点不可见
-              sx={{
-                "& .MuiBadge-dot": {
-                  width: 8,
-                  height: 8,
-                  transform: "translate(120%, -80%)", // 将小红点稍微移动到右上角
-                },
-              }}
-            >
-              消息中心
-            </Badge>
-          }
-        />
-        <Tab label="动漫收藏" />
-        <Tab label="我的帖子" />
-        <Tab label="收藏帖子" />
-        <Tab label="我的评论" />
-        <Tab label="设置" />
-      </Tabs>
+        <Tabs
+          orientation="vertical"
+          value={selectedTab}
+          onChange={handleTabChange}
+          aria-label="Personal Center Tabs"
+          sx={{
+            height: "100%",
+          }}
+        >
+          <Tab label="个人资料" />
+          <Tab
+            label={
+              <Badge
+                variant="dot"
+                color="error"
+                invisible={unreadCount === 0} // 如果没有未读消息，小红点不可见
+                sx={{
+                  "& .MuiBadge-dot": {
+                    width: 8,
+                    height: 8,
+                    transform: "translate(120%, -80%)", // 将小红点稍微移动到右上角
+                  },
+                }}
+              >
+                消息中心
+              </Badge>
+            }
+          />
+          <Tab label="动漫收藏" />
+          <Tab label="我的帖子" />
+          <Tab label="收藏帖子" />
+          <Tab label="我的评论" />
+          <Tab label="设置" />
+        </Tabs>
+      </Box>
       <Box
         sx={{
           flexGrow: 1,
           p: 3,
           backgroundColor: "#F2F2F2",
+          minHeight: "100vh",
         }}
       >
         {selectedTab === 0 && <PersonalInfo />}

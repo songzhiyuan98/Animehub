@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react"; //useState声明状态变量，useEffect在组件渲染后执行副作用操作，useCallback返回一个记忆化的回调函数
-import { useNavigate } from "react-router-dom"; //导航钩子
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
 import {
   AppBar,
@@ -17,34 +17,35 @@ import {
   Avatar,
   LinearProgress,
   Grid,
+  Chip,
 } from "@mui/material";
 import { styled } from "@mui/system";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+import { ThumbUp, ChatBubbleOutline, AccessTime } from "@mui/icons-material";
 
 const Home = () => {
-  const [searchTerm, setSearchTerm] = useState(""); //状态变量searchTerm，保存搜索框内容，初始化值为空字符串
-  const [recommendations, setRecommendations] = useState([]); //状态变量recommendation，保存日推动漫信息，初始化为空数组
+  const [searchTerm, setSearchTerm] = useState("");
+  const [recommendations, setRecommendations] = useState([]);
   const [currentAnimePage, setCurrentAnimePage] = useState(0);
   const [currentAnimeTotalPages, setCurrentAnimeTotalPages] = useState(1);
-  const [loadingAnime, setLoadingAnime] = useState(false); //加载动画动漫日推
-  const [posts, setPosts] = useState([]); //状态变量posts，保存帖子信息，初始化为空数组
-  const [currentPage, setCurrentPage] = useState(1); //状态变量当前页面，初始化为1
-  const [totalPages, setTotalPages] = useState(1); //状态变量总页面，初始化为1
-  const [loading, setLoading] = useState(false); //状态变量加载状态，初始化为false
-  const [canScroll, setCanScroll] = useState(true); // 是否可以滚动加载更多
+  const [loadingAnime, setLoadingAnime] = useState(false);
+  const [posts, setPosts] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [canScroll, setCanScroll] = useState(true);
+  const BASE_URL = "http://localhost:3000";
 
-  //在组件挂载时，执行日推和获取帖子两个函数
   useEffect(() => {
     fetchPosts(currentPage);
-  }, []); //依赖性空数组[]表示这个effect只在组件挂载和卸载时执行一次
+  }, []);
 
   const navigate = useNavigate();
-  //处理动漫卡片点击事件
+
   const handleCardClick = (mal_id) => {
     navigate(`/anime/${mal_id}`);
   };
 
-  // 获取日推动漫函数
   const fetchDailyRecommendations = async (page) => {
     setLoadingAnime(true);
     try {
@@ -66,7 +67,6 @@ const Home = () => {
     fetchDailyRecommendations(currentAnimePage);
   }, [currentAnimePage]);
 
-  // 处理翻页功能
   const handleNextPage = () => {
     if (currentAnimePage < currentAnimeTotalPages - 1) {
       setCurrentAnimePage((prevPage) => prevPage + 1);
@@ -75,16 +75,14 @@ const Home = () => {
     }
   };
 
-  //获取帖子函数，记忆化的回调函数
   const fetchPosts = useCallback(async (page) => {
-    setLoading(true); //将加载状态变量设置为true
+    setLoading(true);
     try {
       const response = await axiosInstance.get(
         "http://localhost:3000/api/posts?page=${page}&limit=10"
-      ); //向后端分页获取帖子路由发送请求获取数据，页面页page函数，limit默认为10
-      const data = response.data; //储存响应数据到到data，数组数据包含posts（帖子信息），totalPages，currentPage
+      );
+      const data = response.data;
       setPosts((prevPosts) => {
-        //检查新的帖子是否已经在当前post里，避免重复添加，防御性编程确保datapost是一个数组，否则返回空数组
         const newPosts = Array.isArray(data.posts)
           ? data.posts.filter(
               (post) => !prevPosts.some((p) => p._id === post._id)
@@ -92,65 +90,61 @@ const Home = () => {
           : [];
         return [...prevPosts, ...newPosts];
       });
-      setTotalPages(data.totalPages); //更新状态变量totalPage
-      setCurrentPage(data.currentPage); //更新状态变量currentPage
+      setTotalPages(data.totalPages);
+      setCurrentPage(data.currentPage);
 
-      //如果帖子数量不足1页，禁用滚动加载
       if (data.totalPages === 1) {
         setCanScroll(false);
       }
     } catch (error) {
-      console.error("Error fetching posts: " + error); //控制台打印错误消息
+      console.error("Error fetching posts: " + error);
     } finally {
-      setLoading(false); //无论获取成功与否，都将加载状态设置为false
+      setLoading(false);
     }
-  }, []); //依赖为空数组，表示函数在组件的生命周期内不会改变
+  }, []);
 
-  //定义一个滚动事件处理函数，当检测页面滚动到接近底部，调用fetchPost函数加载帖子
   const handleScroll = useCallback(() => {
-    //判断当前页面距离页面底部不足500像素，而且loading状态为false，当前页面小于总页面
     if (
       window.innerHeight + window.scrollY >= document.body.offsetHeight - 500 &&
       !loading &&
       currentPage < totalPages
     ) {
-      const nextPage = currentPage + 1; //定义一个变量储存更新后的当前页面，防止异步函数潜在问题
-      setCurrentPage(nextPage); //更新当前页面状态变量
-      fetchPosts(nextPage); //调用fetchPost，参数为下一页，加载新帖子
+      const nextPage = currentPage + 1;
+      setCurrentPage(nextPage);
+      fetchPosts(nextPage);
     }
   }, [loading, currentPage, totalPages, fetchPosts]);
 
-  //useEffect在handleScroll被调用时创建
   useEffect(() => {
-    //根据canScroll状态函数决定是否添加滚动监视器
     if (canScroll) {
-      window.addEventListener("scroll", handleScroll); //创建一个滚动监听器，一旦滚动，调用handleScroll函数判断是否加载更多帖子
-      return () => window.removeEventListener("scroll", handleScroll); //再添加新的useEffect前卸载滚动监听器
+      window.addEventListener("scroll", handleScroll);
+      return () => window.removeEventListener("scroll", handleScroll);
     }
   }, [handleScroll]);
 
-  //函数限制字数
   const truncatedSynopsisForTitle = (text) => {
     return text.length > 10 ? text.substring(0, 14) + "..." : text;
   };
 
-  //更新搜索框的输入值
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
   };
 
-  //处理搜索提交事件，逻辑还没写
   const handleSearchSubmit = async (event) => {
-    event.preventDefault(); //防止浏览器默认提交
-    //处理搜索逻辑，代写
+    event.preventDefault();
   };
 
-  // 定义截断文本的函数
   const truncateText = (text, length) => {
+    if (!text) return '';
     return text.length > length ? text.substring(0, length) + "..." : text;
   };
 
-  //如果在加载状态，渲染加载组件
+  const formatDate = (dateString) => {
+    if (!dateString) return ''; // 如果没有日期字符串，返回空字符串
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString('zh-CN', options);
+  };
+
   if (loadingAnime) {
     return (
       <Box
@@ -172,7 +166,7 @@ const Home = () => {
             <Box
               sx={{
                 width: 4,
-                height: 40, // 你可以根据需要调整高度
+                height: 40,
                 backgroundColor: "#ed6000",
                 marginRight: 2,
               }}
@@ -271,59 +265,93 @@ const Home = () => {
             <Box
               sx={{
                 width: 4,
-                height: 40, // 你可以根据需要调整高度
+                height: 40,
                 backgroundColor: "#ed6000",
                 marginRight: 2,
               }}
             />
             <Typography variant="h4" gutterBottom sx={{ mt: 2 }}>
-              新鲜帖子
+              热门帖子
             </Typography>
           </Box>
-          <Box
-            sx={{
-              border: "1px solid #ddd",
-              backgroundColor: "#fff",
-              borderRadius: "16px",
-              boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-              padding: 2,
-              position: "relative",
-            }}
-          >
+          <Box sx={{ padding: 0, mt: 3, position: "relative" }}>
             {posts.map((post) => (
               <Box
                 key={post._id}
+                onClick={() => navigate(`/post/${post._id}`)}
                 sx={{
                   marginBottom: 2,
                   display: "flex",
                   flexDirection: "row",
-                  padding: 1,
+                  justifyContent: "space-between",
+                  padding: 2,
                   borderRadius: "16px",
+                  cursor: "pointer",
+                  transition: "all 0.3s ease-out",
+                  border: "1px solid #ddd",
+                  backgroundColor: "#fff",
+                  boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+                  "&:hover": {
+                    backgroundColor: "rgba(237, 96, 0, 0.05)",
+                    transform: "translateY(-4px) scale(1.02)",
+                    boxShadow: "0 8px 16px rgba(237, 96, 0, 0.2)",
+                    border: "1px solid #ed6000",
+                  },
                 }}
               >
-                {post.image && (
-                  <Avatar
-                    src={`http://localhost:3000${post.image}`}
-                    variant="square"
-                    sx={{
-                      width: 180,
-                      height: 230,
-                      objectFit: "cover",
-                      borderRadius: 12,
-                    }}
-                  />
-                )}
-                <CardContent>
-                  <Typography variant="h5" component="div">
-                    {post.title}
-                  </Typography>
-                  <Typography variant="body1">
-                    {truncateText(post.content, 250)}
-                  </Typography>
-                  <Typography variant="subtitle1" color="text.secondary">
-                    Posted by {post.userId.username}
-                  </Typography>
-                </CardContent>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={9}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                      <Avatar src={post.author?.avatar ? `${BASE_URL}${post.author.avatar}` : undefined} sx={{ mr: 1 }} />
+                      <Typography variant="subtitle1" color="text.secondary">
+                        {post.author?.username || '匿名用户'}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
+                        {formatDate(post.createdAt)}
+                      </Typography>
+                    </Box>
+                    <Typography variant="h5" component="div" gutterBottom>
+                      {post.title}
+                    </Typography>
+                    <Typography variant="body1" color="text.secondary" paragraph>
+                      {truncateText(post.previewText, 150)}
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                      {post.category && <Chip label={post.category} size="small" sx={{ mr: 1 }} />}
+                      <AccessTime fontSize="small" sx={{ mr: 0.5 }} />
+                      <Typography variant="body2" color="text.secondary">
+                        {post.readTime} 分钟阅读
+                      </Typography>
+                      <Box sx={{ flexGrow: 1 }} />
+                      <IconButton size="small" sx={{ mr: 1 }}>
+                        <ThumbUp fontSize="small" />
+                      </IconButton>
+                      <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }}>
+                        {post.likes?.length || 0}
+                      </Typography>
+                      <IconButton size="small" sx={{ mr: 1 }}>
+                        <ChatBubbleOutline fontSize="small" />
+                      </IconButton>
+                      <Typography variant="body2" color="text.secondary">
+                        {post.comments?.length || 0}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} md={3} sx={{ display: 'flex', alignItems: 'center' }}>
+                    {post.coverImage && (
+                      <Avatar
+                        src={`http://localhost:3000${post.coverImage}`}
+                        variant="rounded"
+                        sx={{
+                          width: '100%',
+                          height: '100%',
+                          maxHeight: '200px',
+                          objectFit: "cover",
+                        }}
+                      />
+                    )}
+                  </Grid>
+                </Grid>
               </Box>
             ))}
           </Box>

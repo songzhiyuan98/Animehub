@@ -38,6 +38,11 @@ const AnimeInfo = () => {
   const location = useLocation();
 
   useEffect(() => {
+    // 当组件挂载或 location 改变时，滚动到页面顶部
+    window.scrollTo(0, 0);
+  }, [location]);
+
+  useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
     const commentId = queryParams.get("commentId");
 
@@ -51,13 +56,12 @@ const AnimeInfo = () => {
           });
           commentElement.classList.add("highlight");
 
-          // 第一次移除高亮效果
+          // 移除高亮效果
           setTimeout(() => {
             commentElement.classList.remove("highlight");
-            commentElement.classList.add("highlight-remove");
-          }, 1000); // 500ms后移除第一次高亮效果
+          }, 2000); // 2秒后移除高亮效果，刚好是两次闪烁的时间
         }
-      }, 300); // 延迟100ms以确保元素已渲染
+      }, 1000); // 延迟500ms以确保元素已渲染
     }
   }, [location]);
 

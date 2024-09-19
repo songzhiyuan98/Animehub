@@ -1,10 +1,31 @@
 /* src/styles.css */
 .highlight {
-  background-color: rgba(0, 0, 0, 0.1); /* 使用灰色的透明背景作为高亮 */
-  transition: background-color 0.5s ease-in-out; /* 较短的渐变时间 */
+  animation: flash 2s ease-in-out 2;
+  /* 闪烁动画，持续2秒，每秒重复2次 */
+}
+
+@keyframes flash {
+
+  0%,
+  100% {
+    background-color: transparent;
+    box-shadow: 0 0 0 0 rgba(237, 96, 0, 0);
+  }
+
+  25%,
+  75% {
+    background-color: rgba(237, 96, 0, 0.1);
+    box-shadow: 0 0 0 4px rgba(237, 96, 0, 0.3);
+  }
+
+  50% {
+    background-color: rgba(237, 96, 0, 0.2);
+    box-shadow: 0 0 0 2px rgba(237, 96, 0, 0.5);
+  }
 }
 
 .highlight-remove {
-  background-color: "F2F2F2"; /* 恢复为透明 */
-  transition: background-color 0.5s ease-in-out; /* 渐变恢复 */
+  background-color: transparent;
+  box-shadow: none;
+  transition: all 0.5s ease-in-out;
 }

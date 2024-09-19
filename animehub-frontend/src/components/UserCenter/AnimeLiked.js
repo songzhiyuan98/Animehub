@@ -3,6 +3,19 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Typography, Avatar, Box, LinearProgress, Grid } from "@mui/material";
 import axiosInstance from "../../utils/axiosInstance";
+import { keyframes } from "@mui/system";
+
+// 定义关键帧动画
+const gradientShift = keyframes`
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+`;
+
+const borderAnimation = keyframes`
+  0% { background-position: 0 0, 100% 0, 100% 100%, 0 100%; }
+  100% { background-position: 100% 0, 100% 100%, 0 100%, 0 0; }
+`;
 
 const AnimeLiked = () => {
   const user = useSelector((state) => state.user.user);
@@ -56,33 +69,63 @@ const AnimeLiked = () => {
       </Typography>
       <Box
         sx={{
-          border: "1px solid #ddd",
-          borderRadius: "16px",
-          boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-          backgroundColor: "#fff",
-          padding: 2,
           mt: 3,
         }}
       >
         <Grid container spacing={2}>
           {likedAnimes.map((anime) => (
-            <Grid item xs={12} sm={6} md={3} key={anime.mal_id}>
+            <Grid item xs={12} sm={6} md={4} lg={2} key={anime.mal_id}>
               <Box
                 onClick={() => handleCardClick(anime.mal_id)}
                 sx={{
                   cursor: "pointer",
                   borderRadius: "16px",
-                  transition: "transform 0.3s ease-in-out",
-                  marginRight: 2,
-                  padding: 2,
-                  "&:hover": {
-                    transform: "scale(1.1)",
-                  },
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
+                  transition: "all 0.3s ease-out",
+                  padding: 1,
+                  position: "relative",
                   overflow: "hidden",
                   height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  "&::before": {
+                    content: '""',
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: "linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%)",
+                    opacity: 0,
+                    transition: "opacity 0.3s ease-out",
+                    zIndex: 1,
+                  },
+                  "&:hover": {
+                    transform: "translateY(-8px) scale(1.05)",
+                    boxShadow: "0 12px 20px rgba(237, 96, 0, 0.2)",
+                    "&::before": {
+                      opacity: 0.6,
+                      animation: `${gradientShift} 3s ease infinite`,
+                    },
+                    "& .MuiTypography-root": {
+                      transform: "scale(1.05)",
+                      transition: "transform 0.3s ease-out",
+                    },
+                    "&::after": {
+                      content: '""',
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      background: "linear-gradient(90deg, #ed6000 50%, transparent 50%), linear-gradient(90deg, #ed6000 50%, transparent 50%), linear-gradient(0deg, #ed6000 50%, transparent 50%), linear-gradient(0deg, #ed6000 50%, transparent 50%)",
+                      backgroundRepeat: "repeat-x, repeat-x, repeat-y, repeat-y",
+                      backgroundSize: "15px 2px, 15px 2px, 2px 15px, 2px 15px",
+                      backgroundPosition: "0 0, 100% 100%, 0 100%, 100% 0",
+                      animation: `${borderAnimation} 1s infinite linear`,
+                      zIndex: 2,
+                      pointerEvents: "none",
+                    },
+                  },
                 }}
               >
                 <Box
@@ -90,6 +133,7 @@ const AnimeLiked = () => {
                     width: "100%",
                     paddingTop: "133%",
                     position: "relative",
+                    zIndex: 3,
                   }}
                 >
                   <Avatar
@@ -107,8 +151,25 @@ const AnimeLiked = () => {
                     }}
                   />
                 </Box>
-                <Typography variant="h6" align="center" sx={{ mt: 2 }}>
-                  {truncatedSynopsisForTitle(anime.title_japanese)}
+                <Typography 
+                  variant="subtitle2" 
+                  align="center" 
+                  sx={{ 
+                    mt: 1,
+                    mb: 0.5,
+                    zIndex: 3, 
+                    position: "relative",
+                    fontSize: "0.8rem",
+                    lineHeight: 1.2,
+                    fontWeight: "bold",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                  }}
+                >
+                  {anime.title_japanese}
                 </Typography>
               </Box>
             </Grid>

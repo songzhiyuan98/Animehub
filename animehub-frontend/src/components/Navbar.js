@@ -25,8 +25,8 @@ import {
 //定义导航栏页面
 const pages = [
   { name: "首页", path: "/" },
-  { name: "索引", path: "/index" },
-  { name: "帖子", path: "/posts" },
+  { name: "动漫星球", path: "/index" },
+  { name: "帖子专区", path: "/posts" },
 ];
 
 //定义用户菜单设置项

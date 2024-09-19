@@ -1,0 +1,165 @@
+/* 保留 ReactQuill 的原始样式 */
+@import '~react-quill/dist/quill.snow.css';
+
+/* 自定义样式 */
+.quill-editor {
+    height: auto;
+    /* 移除最小高度限制 */
+    min-height: 200px;
+    /* 保持最小高度 */
+    max-height: calc(100% - 50px);
+    /* 保持最大高度 */
+}
+
+/* 覆盖 ReactQuill 默认样式 */
+.quill-editor .ql-container {
+    font-size: 16px;
+    /* 保持字体大小 */
+    line-height: 1.8;
+    /* 保持行高 */
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    /* 保持字体 */
+}
+
+.quill-editor .ql-editor {
+    min-height: 150px;
+    /* 保持最小高度 */
+    padding: 20px;
+    /* 保持内边距 */
+    color: #333;
+    /* 保持颜色 */
+}
+
+.quill-editor .ql-editor p {
+    margin-bottom: 1.5em;
+    /* 保持段落间距 */
+}
+
+.quill-editor .ql-editor img,
+.quill-editor.post-content img {
+    max-width: 100% !important;
+    /* 保持最大宽度 */
+    width: 100% !important;
+    /* 保持宽度 */
+    height: auto !important;
+    /* 保持高度 */
+    display: block;
+    margin: 1em auto;
+    /* 保持自动居中 */
+}
+
+.quill-editor .ql-editor iframe {
+    max-width: 100%;
+    /* 保持最大宽度 */
+    margin: 2em auto;
+    /* 保持自动居中 */
+    border-radius: 8px;
+    /* 保持圆角 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    /* 保持阴影 */
+}
+
+.quill-editor .ql-editor h1,
+.quill-editor .ql-editor h2,
+.quill-editor .ql-editor h3 {
+    margin-top: 1em;
+    margin-bottom: 1em;
+    /* 保持段落间距 */
+    font-weight: 700;
+    /* 保持字体粗细 */
+    color: #222;
+    /* 保持颜色 */
+}
+
+.quill-editor .ql-editor h1 {
+    font-size: 2.5em;
+    /* 保持字体大小 */
+}
+
+.quill-editor .ql-editor h2 {
+    font-size: 2em;
+    /* 保持字体大小 */
+}
+
+.quill-editor .ql-editor h3 {
+    font-size: 1.5em;
+    /* 保持字体大小 */
+}
+
+.quill-editor .ql-editor blockquote {
+    border-left: 4px solid #ed6000;
+    margin: 1.5em 0;
+    padding: 1em 1.5em;
+    background-color: #f9f9f9;
+    /* 保持背景颜色 */
+    font-style: italic;
+    /* 保持字体样式 */
+    color: #555;
+    /* 保持颜色 */
+}
+
+.quill-editor .ql-editor code {
+    background-color: #f0f0f0;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: 'Courier New', Courier, monospace;
+    /* 保持字体 */
+}
+
+.quill-editor .ql-editor .ql-size-large,
+.quill-editor.post-content .ql-size-large {
+    width: 100%;
+    /* 保持宽度 */
+}
+
+.video-container {
+    position: relative;
+    padding-bottom: 56.25%;
+    /* 16:9 宽高比 */
+    /* 16:9 宽高比 */
+    height: 0;
+    overflow: hidden;
+    max-width: 100%;
+    margin: 2em auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.video-container iframe,
+.video-container object,
+.video-container embed {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+}
+
+.quill-editor.post-content .video-container {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    overflow: hidden;
+    max-width: 100%;
+    margin: 2em auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.quill-editor.post-content .video-container iframe,
+.quill-editor.post-content .video-container object,
+.quill-editor.post-content .video-container embed {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+}
+
+/* 覆盖 ReactQuill 默认样式 */
+.ql-editor img {
+    max-width: 100% !important;
+    width: 100% !important;
+}

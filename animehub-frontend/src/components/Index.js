@@ -6,78 +6,25 @@ import {
   Button,
   Grid,
   CircularProgress,
-  Avatar, // 为 AnimeCard 组件添加
+  Avatar,
 } from "@mui/material";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import FilterDialog from "./FilterDialog";
+import { keyframes } from "@mui/system";
 
-// AnimeCard 组件定义
-const AnimeCard = ({ anime, onCardClick }) => {
-  return (
-    <Grid item xs={12} sm={6} md={2}>
-      {/* 卡片容器 */}
-      <Box
-        onClick={() => onCardClick(anime.mal_id)}
-        sx={{
-          cursor: "pointer", // 鼠标悬停时显示为可点击状态
-          borderRadius: "16px", // 设置卡片圆角
-          transition: "transform 0.3s ease-in-out", // 添加变换动画效果
-          padding: 2, // 内边距
-          "&:hover": {
-            transform: "scale(1.1)", // 鼠标悬停时放大卡片
-          },
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          overflow: "hidden",
-          height: "100%",
-        }}
-      >
-        {/* 图片容器 */}
-        <Box
-          sx={{
-            width: "100%",
-            paddingTop: "133%", // 4:3 宽高比
-            position: "relative",
-          }}
-        >
-          {/* 动漫封面图片 */}
-          <Avatar
-            alt={anime.title_japanese}
-            src={anime.images.jpg.large_image_url}
-            variant="square"
-            sx={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              borderRadius: "8px",
-              objectFit: "cover",
-            }}
-          />
-        </Box>
-        {/* 动漫标题 */}
-        <Typography
-          variant="h6"
-          align="center"
-          sx={{
-            mt: 2,
-            width: "100%",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis", // 标题过长时显示省略号
-          }}
-        >
-          {anime.title_japanese}
-        </Typography>
-      </Box>
-    </Grid>
-  );
-};
+// 定义关键帧动画
+const gradientShift = keyframes`
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+`;
 
-// 主页面组件
+const borderAnimation = keyframes`
+  0% { background-position: 0 0, 100% 0, 100% 100%, 0 100%; }
+  100% { background-position: 100% 0, 100% 100%, 0 100%, 0 0; }
+`;
+
 const Index = () => {
   //动漫播放状态预定义
   const ANIME_STATUSES = [
@@ -294,7 +241,7 @@ const Index = () => {
                 }}
               />
               <Typography variant="h4" gutterBottom sx={{ mt: 2 }}>
-                动漫探索
+                动漫星球
               </Typography>
             </Box>
 
@@ -337,33 +284,64 @@ const Index = () => {
           {/* 动漫列表容器 */}
           <Box
             sx={{
-              border: "1px solid #ddd",
-              backgroundColor: "#fff",
-              borderRadius: "16px",
-              boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-              padding: 2,
               mt: 3,
             }}
           >
-            <Grid container spacing={1}>
+            <Grid container spacing={2}>
               {/* 渲染动漫卡片 */}
               {animes.map((anime) => (
-                <Grid item xs={12} sm={6} md={2} key={anime.mal_id}>
+                <Grid item xs={12} sm={6} md={4} lg={2} key={anime.mal_id}>
                   <Box
                     onClick={() => handleCardClick(anime.mal_id)}
                     sx={{
                       cursor: "pointer",
                       borderRadius: "16px",
-                      transition: "transform 0.3s ease-in-out",
-                      padding: 2,
-                      "&:hover": {
-                        transform: "scale(1.1)",
-                      },
+                      transition: "all 0.3s ease-out",
+                      padding: 1,
+                      position: "relative",
+                      overflow: "hidden",
+                      height: "100%",
                       display: "flex",
                       flexDirection: "column",
-                      alignItems: "center",
-                      overflow: "hidden",
-                      height: "90%",
+                      "&::before": {
+                        content: '""',
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: "linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%)",
+                        opacity: 0,
+                        transition: "opacity 0.3s ease-out",
+                        zIndex: 1,
+                      },
+                      "&:hover": {
+                        transform: "translateY(-8px) scale(1.05)",
+                        boxShadow: "0 12px 20px rgba(237, 96, 0, 0.2)",
+                        "&::before": {
+                          opacity: 0.6,
+                          animation: `${gradientShift} 3s ease infinite`,
+                        },
+                        "& .MuiTypography-root": {
+                          transform: "scale(1.05)",
+                          transition: "transform 0.3s ease-out",
+                        },
+                        "&::after": {
+                          content: '""',
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          background: "linear-gradient(90deg, #ed6000 50%, transparent 50%), linear-gradient(90deg, #ed6000 50%, transparent 50%), linear-gradient(0deg, #ed6000 50%, transparent 50%), linear-gradient(0deg, #ed6000 50%, transparent 50%)",
+                          backgroundRepeat: "repeat-x, repeat-x, repeat-y, repeat-y",
+                          backgroundSize: "15px 2px, 15px 2px, 2px 15px, 2px 15px",
+                          backgroundPosition: "0 0, 100% 100%, 0 100%, 100% 0",
+                          animation: `${borderAnimation} 1s infinite linear`,
+                          zIndex: 2,
+                          pointerEvents: "none",
+                        },
+                      },
                     }}
                   >
                     <Box
@@ -371,6 +349,7 @@ const Index = () => {
                         width: "100%",
                         paddingTop: "133%",
                         position: "relative",
+                        zIndex: 3,
                       }}
                     >
                       <Avatar
@@ -388,10 +367,25 @@ const Index = () => {
                         }}
                       />
                     </Box>
-                    <Typography variant="h6" align="center" sx={{ mt: 2 }}>
-                      {truncatedSynopsisForTitle(
-                        anime.title_japanese || anime.title || ""
-                      )}
+                    <Typography 
+                      variant="subtitle2" 
+                      align="center" 
+                      sx={{ 
+                        mt: 1,
+                        mb: 0.5,
+                        zIndex: 3, 
+                        position: "relative",
+                        fontSize: "0.8rem",
+                        lineHeight: 1.2,
+                        fontWeight: "bold",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                      }}
+                    >
+                      {truncatedSynopsisForTitle(anime.title_japanese || anime.title || "")}
                     </Typography>
                   </Box>
                 </Grid>
