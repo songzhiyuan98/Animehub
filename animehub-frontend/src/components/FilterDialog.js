@@ -1,5 +1,6 @@
 //过滤弹窗组件
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogTitle,
@@ -26,6 +27,7 @@ const FilterDialog = ({
   initialFilters,
   translateQuery,
 }) => {
+  const { t } = useTranslation();
   const [filters, setFilters] = useState(initialFilters); //创建本地过滤状态filter，包含所有过滤条件的对象
 
   //处理类型切换的函数，如果该类型已经在过滤器状态中，移除该类型，如果不在，则添加
@@ -66,7 +68,7 @@ const FilterDialog = ({
       onClose={onClose}
       fullWidth
       maxWidth="md"
-      aria-labelledby="login-prompt-dialog-title"
+      aria-labelledby="filter-dialog-title"
       PaperProps={{
         sx: {
           borderRadius: "16px",
@@ -75,11 +77,11 @@ const FilterDialog = ({
         },
       }}
     >
-      <DialogTitle>过滤选项</DialogTitle>
+      <DialogTitle>{t("filterOptions")}</DialogTitle>
       <DialogContent>
         <TextField
           fullWidth
-          label="搜索动漫"
+          label={t("searchAnime")}
           value={filters.query}
           onChange={(e) =>
             setFilters((prev) => ({ ...prev, query: e.target.value }))
@@ -88,12 +90,12 @@ const FilterDialog = ({
         />
 
         <Box sx={{ mt: 2 }}>
-          <Box sx={{ fontWeight: "bold", mb: 1 }}>类型：</Box>
+          <Box sx={{ fontWeight: "bold", mb: 1 }}>{t("type")}：</Box>
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
             {types.map((type) => (
               <Chip
                 key={type.value}
-                label={type.label}
+                label={t(type.label)}
                 onClick={() => handleToggle("type", type.value)}
                 color={filters.type === type.value ? "primary" : "default"}
               />
@@ -102,12 +104,12 @@ const FilterDialog = ({
         </Box>
 
         <Box sx={{ mt: 2 }}>
-          <Box sx={{ fontWeight: "bold", mb: 1 }}>状态：</Box>
+          <Box sx={{ fontWeight: "bold", mb: 1 }}>{t("status")}：</Box>
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
             {statuses.map((status) => (
               <Chip
                 key={status.value}
-                label={status.label}
+                label={t(status.label)}
                 onClick={() => handleToggle("status", status.value)}
                 color={filters.status === status.value ? "primary" : "default"}
               />
@@ -116,12 +118,12 @@ const FilterDialog = ({
         </Box>
 
         <Box sx={{ mt: 2 }}>
-          <Box sx={{ fontWeight: "bold", mb: 1 }}>分级：</Box>
+          <Box sx={{ fontWeight: "bold", mb: 1 }}>{t("rating")}：</Box>
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
             {ratings.map((rating) => (
               <Chip
                 key={rating.value}
-                label={rating.label}
+                label={t(rating.label)}
                 onClick={() => handleToggle("rating", rating.value)}
                 color={filters.rating === rating.value ? "primary" : "default"}
               />
@@ -130,12 +132,14 @@ const FilterDialog = ({
         </Box>
 
         <Box sx={{ mt: 2 }}>
-          <Box sx={{ fontWeight: "bold", mb: 1 }}>限制成人内容：</Box>
+          <Box sx={{ fontWeight: "bold", mb: 1 }}>
+            {t("restrictAdultContent")}：
+          </Box>
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
             {sfws.map((sfw) => (
               <Chip
                 key={sfw.value}
-                label={sfw.label}
+                label={t(sfw.label)}
                 onClick={() => handleToggle("sfw", sfw.value)}
                 color={filters.sfw === sfw.value ? "primary" : "default"}
               />
@@ -144,12 +148,12 @@ const FilterDialog = ({
         </Box>
 
         <Box sx={{ mt: 2 }}>
-          <Box sx={{ fontWeight: "bold", mb: 1 }}>类型：</Box>
+          <Box sx={{ fontWeight: "bold", mb: 1 }}>{t("genres")}：</Box>
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
             {genres.map((genre) => (
               <Chip
                 key={genre.value}
-                label={genre.label}
+                label={t(genre.label)}
                 onClick={() => handleGenreToggle(genre.value)}
                 color={
                   filters.genres.includes(genre.value) ? "primary" : "default"
@@ -160,12 +164,12 @@ const FilterDialog = ({
         </Box>
 
         <Box sx={{ mt: 2 }}>
-          <Box sx={{ fontWeight: "bold", mb: 1 }}>排序方式：</Box>
+          <Box sx={{ fontWeight: "bold", mb: 1 }}>{t("orderBy")}：</Box>
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
             {orderBy.map((option) => (
               <Chip
                 key={option.value}
-                label={option.label}
+                label={t(option.label)}
                 onClick={() => handleToggle("order_by", option.value)}
                 color={
                   filters.order_by === option.value ? "primary" : "default"
@@ -176,12 +180,12 @@ const FilterDialog = ({
         </Box>
 
         <Box sx={{ mt: 2 }}>
-          <Box sx={{ fontWeight: "bold", mb: 1 }}>排序方向：</Box>
+          <Box sx={{ fontWeight: "bold", mb: 1 }}>{t("sortDirection")}：</Box>
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
             {sortDirections.map((option) => (
               <Chip
                 key={option.value}
-                label={option.label}
+                label={t(option.label)}
                 onClick={() => handleToggle("sort", option.value)}
                 color={filters.sort === option.value ? "primary" : "default"}
               />
@@ -190,9 +194,9 @@ const FilterDialog = ({
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>取消</Button>
+        <Button onClick={onClose}>{t("cancel")}</Button>
         <Button onClick={handleApply} variant="contained" color="primary">
-          应用过滤器
+          {t("applyFilter")}
         </Button>
       </DialogActions>
     </Dialog>

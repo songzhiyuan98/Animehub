@@ -8,13 +8,15 @@ import {
   Button,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const LoginPromptDialog = ({ open, handleClose }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleLoginRedirect = () => {
-    navigate("/login"); // 重定向到登录页面
-    handleClose(); // 关闭对话框
+    navigate("/login");
+    handleClose();
   };
 
   return (
@@ -31,15 +33,17 @@ const LoginPromptDialog = ({ open, handleClose }) => {
         },
       }}
     >
-      <DialogTitle id="login-prompt-dialog-title">需要登录</DialogTitle>
+      <DialogTitle id="login-prompt-dialog-title">
+        {t("loginRequired")}
+      </DialogTitle>
       <DialogContent>
-        <DialogContentText>您需要登录才能使用此功能。</DialogContentText>
+        <DialogContentText>{t("loginRequiredMessage")}</DialogContentText>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleLoginRedirect} color="primary">
-          去登录
+          {t("goToLogin")}
         </Button>
-        <Button onClick={handleClose}>取消</Button>
+        <Button onClick={handleClose}>{t("cancel")}</Button>
       </DialogActions>
     </Dialog>
   );

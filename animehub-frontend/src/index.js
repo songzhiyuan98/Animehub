@@ -8,6 +8,7 @@ import { ThemeProvider } from "@mui/material/styles";
 import theme from "./theme"; // 导入主题
 import "./index.css";
 import reportWebVitals from "./reportWebVitals";
+import './i18n';
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 

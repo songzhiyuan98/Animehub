@@ -50,7 +50,7 @@ exports.getPosts = async (req, res) => {
 
     const posts = await Post.find() // 查找所有帖子
       .select('title previewText coverImage author createdAt readTime tags likes') // 添加 tags
-      .populate('author', 'username avatar') // 关联user集合，填充username和avatar字段
+      .populate('author', 'nickname avatar') // 关联user集合，填充username和avatar字段
       .sort({ createdAt: -1 }) // 按创建时间降序排列
       .skip(skip) // 跳过帖子数量
       .limit(limit); // 限制帖子数量
@@ -77,7 +77,7 @@ exports.getPosts = async (req, res) => {
 exports.getPostById = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id)
-      .populate('author', 'username avatar');
+      .populate('author', 'nickname avatar');
     
     if (!post) {
       return res.status(404).json({ message: '帖子不存在' });
@@ -130,7 +130,7 @@ exports.getSimilarPosts = async (req, res) => {
     const similarPosts = await Post.find({
       _id: { $ne: id },
       tags: { $in: currentPost.tags }
-    }).populate('author', 'username avatar');
+    }).populate('author', 'nickname avatar');
 
     // 计算每个帖子匹配的标签数量并排序
     const sortedSimilarPosts = similarPosts
@@ -157,7 +157,7 @@ exports.getSimilarPosts = async (req, res) => {
         },
         { $unwind: '$author' },
         { $project: {
-            'author.username': 1,
+            'author.nickname': 1,
             'author.avatar': 1,
             title: 1,
             content: 1,

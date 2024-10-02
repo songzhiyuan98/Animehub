@@ -8,10 +8,12 @@ import AnimeLiked from "./UserCenter/AnimeLiked";
 import PostLiked from "./UserCenter/PostLiked";
 import MyComment from "./UserCenter/MyComment";
 import Setting from "./UserCenter/Setting";
+import { useTranslation } from "react-i18next";
 
 const UserCenter = () => {
   const [selectedTab, setSelectedTab] = useState(0); //状态变量表示被选中tab的索引
   const unreadCount = useSelector((state) => state.notifications.unreadCount); // 获取未读消息数量
+  const { t } = useTranslation();
 
   //处理tab点击事件
   const handleTabChange = (event, newValue) => {
@@ -19,7 +21,9 @@ const UserCenter = () => {
   };
 
   return (
-    <Box sx={{ display: "flex", minHeight: "100vh", backgroundColor: "#F2F2F2" }}>
+    <Box
+      sx={{ display: "flex", minHeight: "100vh", backgroundColor: "#F2F2F2" }}
+    >
       <Box
         sx={{
           width: "9%",
@@ -41,7 +45,7 @@ const UserCenter = () => {
             height: "100%",
           }}
         >
-          <Tab label="个人资料" />
+          <Tab label={t("personalInfo")} />
           <Tab
             label={
               <Badge
@@ -56,15 +60,15 @@ const UserCenter = () => {
                   },
                 }}
               >
-                消息中心
+                {t("messageCenter")}
               </Badge>
             }
           />
-          <Tab label="动漫收藏" />
-          <Tab label="我的帖子" />
-          <Tab label="收藏帖子" />
-          <Tab label="我的评论" />
-          <Tab label="设置" />
+          <Tab label={t("animeCollection")} />
+          <Tab label={t("myPosts")} />
+          <Tab label={t("savedPosts")} />
+          <Tab label={t("myComments")} />
+          <Tab label={t("settings")} />
         </Tabs>
       </Box>
       <Box

@@ -7,6 +7,8 @@ const {
   postComment,
   replyToComment,
   getCommentReplies,
+  postPostComment,
+  getPostComments,
 } = require("../controllers/commentController");
 const authenticateToken = require("../middlewares/authenticateToken"); //认证模块导入
 const router = express.Router();
@@ -15,5 +17,6 @@ router.get("/anime/:animeId/comments", getAnimeComments);
 router.post("/anime/:animeId/comments", authenticateToken, postComment);
 router.post("/comments/:commentId/reply", authenticateToken, replyToComment);
 router.get("/comments/:commentId/replies", getCommentReplies);
-
+router.post("/posts/:postId/comments", authenticateToken, postPostComment);
+router.get("/posts/:postId/comments", getPostComments);
 module.exports = router;

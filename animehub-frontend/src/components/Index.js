@@ -12,6 +12,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import FilterDialog from "./FilterDialog";
 import { keyframes } from "@mui/system";
+import { useTranslation } from "react-i18next";
 
 // 定义关键帧动画
 const gradientShift = keyframes`
@@ -26,79 +27,80 @@ const borderAnimation = keyframes`
 `;
 
 const Index = () => {
+  const { t } = useTranslation();
   //动漫播放状态预定义
   const ANIME_STATUSES = [
-    { value: "", label: "全部" },
-    { value: "airing", label: "连载中" },
-    { value: "complete", label: "已完结" },
-    { value: "upcoming", label: "即将播出" },
+    { value: "", label: "all" },
+    { value: "airing", label: "airing" },
+    { value: "complete", label: "completed" },
+    { value: "upcoming", label: "upcoming" },
   ];
   //视频类型预定义
   const ANIME_TYPES = [
-    { value: "", label: "全部" },
-    { value: "tv", label: "TV" },
-    { value: "movie", label: "电影" },
-    { value: "ova", label: "OVA" },
-    { value: "special", label: "特别篇" },
-    { value: "ona", label: "ONA（网络动画）" },
-    { value: "tv_special", label: "电视特别篇" },
+    { value: "", label: "all" },
+    { value: "tv", label: "tv" },
+    { value: "movie", label: "movie" },
+    { value: "ova", label: "ova" },
+    { value: "special", label: "special" },
+    { value: "ona", label: "ona" },
+    { value: "tv_special", label: "tvSpecial" },
   ];
   //视频评级预定义
   const ANIME_RATINGS = [
-    { value: "", label: "全部" },
-    { value: "g", label: "普遍级" },
-    { value: "pg", label: "建议父母指导" },
-    { value: "pg13", label: "13岁以上" },
-    { value: "r17", label: "限制级（17岁以上）" },
-    { value: "r", label: "限制级（成人限定）" },
-    { value: "rx", label: "成人专用" },
+    { value: "", label: "all" },
+    { value: "g", label: "g" },
+    { value: "pg", label: "pg" },
+    { value: "pg13", label: "pg13" },
+    { value: "r17", label: "r17" },
+    { value: "r", label: "r" },
+    { value: "rx", label: "rx" },
     // ... 其他评级
   ];
   //排序方式自定义
   const ANIME_ORDER_BY = [
-    { value: "end_date", label: "结束日期" },
-    { value: "start_date", label: "开始日期" },
-    { value: "score", label: "评分" },
-    { value: "popularity", label: "人气" },
-    { value: "rank", label: "排名" },
-    { value: "mal_id", label: "动漫ID" },
-    { value: "title", label: "标题" },
-    { value: "episodes", label: "集数" },
-    { value: "scored_by", label: "评分人数" },
+    { value: "end_date", label: "endDate" },
+    { value: "start_date", label: "startDate" },
+    { value: "score", label: "score" },
+    { value: "popularity", label: "popularity" },
+    { value: "rank", label: "rank" },
+    { value: "mal_id", label: "animeId" },
+    { value: "title", label: "title" },
+    { value: "episodes", label: "episodes" },
+    { value: "scored_by", label: "scoredBy" },
     // ... 其他排序选项
   ];
   //预定义成人内容开关
   const ANIME_SFW = [
-    { value: true, label: "限制成人内容" },
-    { value: false, label: "放开限制" },
+    { value: true, label: "restrictAdultContent" },
+    { value: false, label: "noRestriction" },
   ];
   //升序降序
   const SORT_DIRECTIONS = [
-    { value: "desc", label: "降序" },
-    { value: "asc", label: "升序" },
+    { value: "desc", label: "descending" },
+    { value: "asc", label: "ascending" },
   ];
   const ANIME_GENRES = [
-    { value: 1, label: "动作" },
-    { value: 2, label: "冒险" },
-    { value: 4, label: "喜剧" },
-    { value: 8, label: "剧情" },
-    { value: 10, label: "奇幻" },
-    { value: 22, label: "恋爱" },
-    { value: 24, label: "科幻" },
-    { value: 36, label: "日常" },
-    { value: 30, label: "运动" },
-    { value: 7, label: "悬疑" },
-    { value: 37, label: "超自然" },
-    { value: 23, label: "校园" },
-    { value: 35, label: "后宫" },
-    { value: 12, label: "成人" },
-    { value: 62, label: "异世界" },
-    { value: 19, label: "音乐" },
-    { value: 38, label: "军事" },
-    { value: 40, label: "心理" },
-    { value: 29, label: "太空" },
-    { value: 11, label: "游戏" },
-    { value: 31, label: "超能力" },
+    { value: 1, label: "action" },
+    { value: 2, label: "adventure" },
+    { value: 4, label: "comedy" },
+    { value: 8, label: "drama" },
+    { value: 10, label: "fantasy" },
+    { value: 22, label: "romance" },
+    { value: 24, label: "sciFi" },
+    { value: 36, label: "sliceOfLife" },
+    { value: 30, label: "sports" },
+    { value: 7, label: "mystery" },
+    { value: 37, label: "supernatural" },
+    { value: 23, label: "school" },
+    { value: 35, label: "harem" },
+    { value: 12, label: "ecchi" },
+    { value: 62, label: "otherWorld" },
+    { value: 19, label: "music" },
+    { value: 38, label: "military" },
+    { value: 40, label: "psychological" },
+    { value: 29, label: "space" },
+    { value: 11, label: "game" },
+    { value: 31, label: "superPower" },
   ];
   // 状态变量定义
   const [animes, setAnimes] = useState([]); // 存储动漫列表
@@ -241,7 +243,7 @@ const Index = () => {
                 }}
               />
               <Typography variant="h4" gutterBottom sx={{ mt: 2 }}>
-                动漫星球
+                {t("animePlanet")}
               </Typography>
             </Box>
 
@@ -263,7 +265,7 @@ const Index = () => {
                 },
               }}
             >
-              过滤选项
+              {t("filterOptions")}
             </Button>
           </Box>
           {/* 过滤器对话框 */}
@@ -310,7 +312,8 @@ const Index = () => {
                         left: 0,
                         right: 0,
                         bottom: 0,
-                        background: "linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%)",
+                        background:
+                          "linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%)",
                         opacity: 0,
                         transition: "opacity 0.3s ease-out",
                         zIndex: 1,
@@ -333,9 +336,12 @@ const Index = () => {
                           left: 0,
                           right: 0,
                           bottom: 0,
-                          background: "linear-gradient(90deg, #ed6000 50%, transparent 50%), linear-gradient(90deg, #ed6000 50%, transparent 50%), linear-gradient(0deg, #ed6000 50%, transparent 50%), linear-gradient(0deg, #ed6000 50%, transparent 50%)",
-                          backgroundRepeat: "repeat-x, repeat-x, repeat-y, repeat-y",
-                          backgroundSize: "15px 2px, 15px 2px, 2px 15px, 2px 15px",
+                          background:
+                            "linear-gradient(90deg, #ed6000 50%, transparent 50%), linear-gradient(90deg, #ed6000 50%, transparent 50%), linear-gradient(0deg, #ed6000 50%, transparent 50%), linear-gradient(0deg, #ed6000 50%, transparent 50%)",
+                          backgroundRepeat:
+                            "repeat-x, repeat-x, repeat-y, repeat-y",
+                          backgroundSize:
+                            "15px 2px, 15px 2px, 2px 15px, 2px 15px",
                           backgroundPosition: "0 0, 100% 100%, 0 100%, 100% 0",
                           animation: `${borderAnimation} 1s infinite linear`,
                           zIndex: 2,
@@ -367,13 +373,13 @@ const Index = () => {
                         }}
                       />
                     </Box>
-                    <Typography 
-                      variant="subtitle2" 
-                      align="center" 
-                      sx={{ 
+                    <Typography
+                      variant="subtitle2"
+                      align="center"
+                      sx={{
                         mt: 1,
                         mb: 0.5,
-                        zIndex: 3, 
+                        zIndex: 3,
                         position: "relative",
                         fontSize: "0.8rem",
                         lineHeight: 1.2,
@@ -385,7 +391,9 @@ const Index = () => {
                         WebkitBoxOrient: "vertical",
                       }}
                     >
-                      {truncatedSynopsisForTitle(anime.title_japanese || anime.title || "")}
+                      {truncatedSynopsisForTitle(
+                        anime.title_japanese || anime.title || ""
+                      )}
                     </Typography>
                   </Box>
                 </Grid>
@@ -447,7 +455,7 @@ const Index = () => {
                     },
                   }}
                 >
-                  正在加载更多精彩内容...
+                  {t("loadingMoreContent")}
                 </Typography>
               </Box>
             ) : (
@@ -470,7 +478,7 @@ const Index = () => {
                     },
                   }}
                 >
-                  加载更多
+                  {t("loadMore")}
                 </Button>
               )
             )}

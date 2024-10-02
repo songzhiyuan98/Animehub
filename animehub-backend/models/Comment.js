@@ -2,10 +2,15 @@
 const mongoose = require("mongoose");
 
 const CommentSchema = new mongoose.Schema({
-  animeId: {
+  contentId: {
     type: String,
     required: true,
   }, //储存评论存在的动漫id
+  contentType: {
+    type: String,
+    enum: ["anime", "post"],
+    required: true,
+  }, //储存评论存在的类型
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",

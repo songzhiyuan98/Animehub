@@ -50,7 +50,7 @@ class NotificationService {
       .map((favorite) => ({
         recipient: favorite.userId, //接收者是所有收藏该动漫的user
         sender: senderId, //发送着userid来自参数
-        type: "comment", //类型comment
+        type: "anime_comment", //类型comment
         contentType: "anime", //评论类型anime
         contentId: animeId, //被评论内容id
         commentId: commentId, //评论id
@@ -82,19 +82,62 @@ class NotificationService {
     contentType,
     contentId
   ) {
-    const parentComment = await Comment.findById(parentCommentId); //根据父评论id寻找评论
-    if (
-      parentComment &&
-      parentComment.userId.toString() !== senderId.toString() //确保评论回复者和父评论发布者不是同一人
-    ) {
+    const parentComment = await Comment.findById(parentCommentId);
+    if (!parentComment) return null;
+
+    const notifications = [];
+
+    // 给父评论作者发送通知（如果回复者不是父评论作者）
+    if (parentComment.userId.toString() !== senderId.toString()) {
       const notification = await this.createNotification({
-        recipient: parentComment.userId, //接收者父评论发送者
-        sender: senderId, //发送者来自于函数参数
-        type: "reply", //类型reply
-        contentType: contentType, //内容类型来自于参数，post/anime
-        contentId: contentId, //内容id来自于参数
-        commentId: replyId, //评论id，来自参数回复id
+        recipient: parentComment.userId,
+        sender: senderId,
+        type: contentType === "anime" ? "anime_reply" : "post_reply",
+        contentType: contentType,
+        contentId: contentId,
+        commentId: replyId,
       });
+      notifications.push(notification);
+    }
+
+    // 如果是帖子评论，还要给帖子作者发送通知（如果回复者不是帖子作者）
+    if (contentType === "post") {
+      const post = await Post.findById(contentId);
+      if (post && post.author.toString() !== senderId.toString() && post.author.toString() !== parentComment.userId.toString()) {//如果帖子存在，帖子作者不是发送者，帖子作者不是父评论作者
+        const notification = await this.createNotification({
+          recipient: post.author,
+          sender: senderId,
+          type: "post_reply_author",
+          contentType: "post",
+          contentId: contentId,
+          commentId: replyId,
+        });
+        notifications.push(notification);
+      }
+    }
+
+    // 使用 populate 填充 sender 和 commentId 的详细信息
+    const populatedNotifications = await Notification.populate(notifications, [
+      { path: "sender", select: "nickname avatar" },
+      { path: "commentId", select: "content" },
+    ]);
+
+    return populatedNotifications;
+  }
+
+  //发送帖子评论通知，发送给帖子发布者，接受参数发送id，评论id，帖子id
+  static async notifyPostComment(postId, commentId, senderId) {
+    const post = await Post.findById(postId); //根据帖子id参数获取帖子对象
+    if (post && post.author.toString() !== senderId.toString()) {
+      //如果发帖者和评论者不是一个人
+      const notification = await this.createNotification({
+        recipient: post.author, //接收者帖子发布者
+        sender: senderId, //发送者，来自于参数
+        type: "post_comment", //类型postcomment
+        contentType: "post", //内容类型post
+        contentId: postId, //内容id，帖子id
+        commentId: commentId, //评论id来自于参数
+      }); //创建通知对象
 
       // 使用 populate 填充 sender 和 commentId 的详细信息
       const populatedNotification = await Notification.populate(notification, [
@@ -106,22 +149,6 @@ class NotificationService {
     }
 
     return null;
-  }
-
-  //发送帖子评论通知，发送给帖子发布者，接受参数发送id，评论id，帖子id
-  static async notifyPostComment(postId, commentId, senderId) {
-    const post = await Post.findById(postId); //根据帖子id参数获取帖子对象
-    if (post && post.userId.toString() !== senderId.toString()) {
-      //如果发帖者和评论者不是一个人
-      await this.createNotification({
-        recipient: post.userId, //接收者帖子发布者
-        sender: senderId, //发送者，来自于参数
-        type: "post_comment", //类型postcomment
-        contentType: "post", //内容类型post
-        contentId: postId, //内容id，帖子id
-        commentId: commentId, //评论id来自于参数
-      }); //创建通知对象
-    }
   }
 
   // 新增方法

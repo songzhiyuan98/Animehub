@@ -4,8 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { Box, Typography, Avatar, IconButton, Badge } from "@mui/material";
 import { MessageSquare, Reply, Bookmark } from "lucide-react";
 import { markNotificationAsRead } from "../../redux/actions/notificationActions"; // 导入标记已读的 action
+import { useTranslation } from "react-i18next";
 
 const Messages = () => {
+  const { t } = useTranslation();
   const notifications = useSelector(
     (state) => state.notifications.notifications
   );
@@ -25,7 +27,7 @@ const Messages = () => {
       );
     } else if (notification.contentType === "post") {
       navigate(
-        `/post/${notification.contentId}?commentId=${notification.commentId}`
+        `/post/${notification.contentId}?commentId=${notification.commentId._id}`
       );
     }
   };
@@ -47,10 +49,37 @@ const Messages = () => {
     }
   };
 
+  const getMessageText = (notification) => {
+    switch (notification.type) {
+      case "anime_comment":
+        return t("animeCommentNotification", {
+          nickname: notification.sender.nickname,
+        });
+      case "post_comment":
+        return t("postCommentNotification", {
+          nickname: notification.sender.nickname,
+        });
+      case "anime_reply":
+        return t("animeReplyNotification", {
+          nickname: notification.sender.nickname,
+        });
+      case "post_reply":
+        return t("postReplyNotification", {
+          nickname: notification.sender.nickname,
+        });
+      case "post_reply_author":
+        return t("postReplyAuthorNotification", {
+          nickname: notification.sender.nickname,
+        });
+      default:
+        return t("newNotification");
+    }
+  };
+
   return (
     <Box sx={{ padding: 3, maxWidth: "100%", overflow: "hidden" }}>
       <Typography variant="h4" gutterBottom>
-        消息中心
+        {t("messageCenter")}
       </Typography>
       <Box
         sx={{
@@ -62,7 +91,7 @@ const Messages = () => {
       >
         {notifications.length === 0 ? (
           <Typography variant="h6" align="center" sx={{ mt: 10 }}>
-            没有新消息
+            {t("noNewMessages")}
           </Typography>
         ) : (
           notifications.map((notification) => (
@@ -97,27 +126,46 @@ const Messages = () => {
                   sx={{ width: 50, height: 50, mr: 2 }}
                 />
                 <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-                  <Typography variant="subtitle1" fontWeight="bold" sx={{ wordBreak: "break-word" }}>
+                  <Typography
+                    variant="subtitle1"
+                    fontWeight="bold"
+                    sx={{ wordBreak: "break-word" }}
+                  >
                     {notification.sender.nickname}
                   </Typography>
                   <Typography variant="body2" sx={{ wordBreak: "break-word" }}>
-                    {notification.type === "reply" ? "回复了你的评论" : "评论了你的收藏"}
+                    {getMessageText(notification)}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1, wordBreak: "break-word" }}>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mt: 1, wordBreak: "break-word" }}
+                  >
                     {truncateText(notification.commentId.content, 50)}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ display: "block", mt: 1 }}
+                  >
                     {new Date(notification.createdAt).toLocaleString()}
                   </Typography>
                 </Box>
               </Box>
-              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end", ml: 2 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-end",
+                  ml: 2,
+                }}
+              >
                 <Typography
                   variant="caption"
                   color={notification.read ? "text.secondary" : "error"}
                   sx={{ mb: 1 }}
                 >
-                  {notification.read ? "已读" : "未读"}
+                  {notification.read ? t("read") : t("unread")}
                 </Typography>
                 <IconButton edge="end" aria-label="notification type">
                   {getIcon(notification.type)}

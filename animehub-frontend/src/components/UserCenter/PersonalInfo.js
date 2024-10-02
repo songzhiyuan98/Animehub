@@ -22,8 +22,10 @@ import EditIcon from "@mui/icons-material/Edit"; //edit图标
 import { useSelector, useDispatch } from "react-redux"; //redux选择器
 import { updateUser } from "../../redux/actions/userActions"; // 导入更新用户信息的 action
 import axiosInstance from "../../utils/axiosInstance";
+import { useTranslation } from "react-i18next";
 
 const PersonalInfo = () => {
+  const { t } = useTranslation();
   // Redux dispatch 和用户信息
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user.user); //从redux中获取用户信息，若不在登录状态，此函数默认返回null
@@ -40,7 +42,9 @@ const PersonalInfo = () => {
 
   // 保存原始数据的状态变量
   const [originalNickname, setOriginalNickname] = useState(user.nickname);
-  const [originalGender, setOriginalGender] = useState(user.gender || "未知");
+  const [originalGender, setOriginalGender] = useState(
+    user.gender || t("unknown")
+  );
   const [originalAvatar, setOriginalAvatar] = useState(user.avatar);
 
   useEffect(() => {
@@ -96,20 +100,32 @@ const PersonalInfo = () => {
         "http://localhost:3000/api/updateUserProfile",
         formData
       ); //使用axiosInstance已经自动在请求头包含jwt令牌
-      console.log("成功更新用户信息:", response.data);
+      console.log(t("userInfoUpdateSuccess"), response.data);
       dispatch(updateUser(response.data)); // 更新 Redux 状态
       //处理后端更新成功后的逻辑，例如更新用户信息显示
     } catch (error) {
-      console.error("更新用户信息失败:", error);
+      console.error(t("userInfoUpdateFailed"), error);
       //处理后端请求更新失败后的逻辑
     }
     handleClose(); //关闭编辑弹窗
   };
 
+  // 性别转换函数
+  const getGenderTranslation = (genderValue) => {
+    switch (genderValue) {
+      case "男":
+        return t("male");
+      case "女":
+        return t("female");
+      default:
+        return t("unknown");
+    }
+  };
+
   return (
     <Box sx={{ padding: 3 }}>
       <Typography variant="h4" gutterBottom>
-        个人中心
+        {t("personalCenter")}
       </Typography>
       <Box
         sx={{
@@ -167,19 +183,19 @@ const PersonalInfo = () => {
               />
             </Box>
             <Typography variant="h6" gutterBottom align="center" sx={{ mt: 4 }}>
-              基本信息
+              {t("basicInfo")}
             </Typography>
             <Typography variant="body1" sx={{ mt: 2 }}>
-              昵称: {user.nickname}
+              {t("nickname")}: {user.nickname}
             </Typography>
             <Typography variant="body1" sx={{ mt: 1 }}>
-              用户名: {user.username}
+              {t("username")}: {user.username}
             </Typography>
             <Typography variant="body1" sx={{ mt: 1 }}>
-              邮箱: {user.email}
+              {t("email")}: {user.email}
             </Typography>
             <Typography variant="body1" sx={{ mt: 1 }}>
-              性别: {user.gender}
+              {t("gender")}: {getGenderTranslation(user.gender)}
             </Typography>
             <IconButton
               sx={{ position: "absolute", right: 16, top: 16 }}
@@ -201,19 +217,21 @@ const PersonalInfo = () => {
             }}
           >
             <Typography variant="h6" gutterBottom>
-              兴趣爱好
+              {t("interests")}
             </Typography>
             {/* 兴趣爱好和自定义编辑内容 */}
-            <Box>爱好: 阅读, 旅行, 运动</Box>
+            <Box>
+              {t("hobbies")}: {t("reading")}, {t("traveling")}, {t("sports")}
+            </Box>
           </Box>
           <Box sx={{ height: "50%", padding: 2 }}>
             <Typography variant="h6" gutterBottom>
-              统计数据
+              {t("statistics")}
             </Typography>
             {/* 统计数据展示 */}
-            <Box>文章数量: 10</Box>
-            <Box>评论数量: 50</Box>
-            <Box>收藏数量: 20</Box>
+            <Box>{t("articleCount")}: 10</Box>
+            <Box>{t("commentCount")}: 50</Box>
+            <Box>{t("favoriteCount")}: 20</Box>
           </Box>
         </Box>
       </Box>
@@ -231,7 +249,7 @@ const PersonalInfo = () => {
           },
         }}
       >
-        <DialogTitle>编辑个人信息</DialogTitle>
+        <DialogTitle>{t("editPersonalInfo")}</DialogTitle>
         <DialogContent>
           {/* 头像预览和上传 */}
           <Box
@@ -251,8 +269,8 @@ const PersonalInfo = () => {
               }}
             >
               <Avatar
-                alt="预览头像"
-                src={previewAvatar || avatar} // 优先显示预览头像
+                alt={t("previewAvatar")}
+                src={previewAvatar || avatar}
                 sx={{
                   width: 100,
                   height: 100,
@@ -288,29 +306,28 @@ const PersonalInfo = () => {
           </Box>
           <TextField
             margin="dense"
-            label="昵称"
+            label={t("nickname")}
             fullWidth
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
           />
           <FormControl fullWidth variant="outlined" sx={{ mt: 2 }}>
-            <InputLabel id="gender-label">性别</InputLabel>
+            <InputLabel id="gender-label">{t("gender")}</InputLabel>
             <Select
               id="gender-select"
               value={gender}
-              label="性别"
+              label={t("gender")}
               onChange={(e) => setGender(e.target.value)}
             >
-              <MenuItem value="男">男</MenuItem>
-              <MenuItem value="女">女</MenuItem>
-              <MenuItem value="未知">未知</MenuItem>
+              <MenuItem value="男">{t("male")}</MenuItem>
+              <MenuItem value="女">{t("female")}</MenuItem>
+              <MenuItem value="未知">{t("unknown")}</MenuItem>
             </Select>
           </FormControl>
-          {/* 你可以在这里添加头像上传功能 */}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>取消</Button>
-          <Button onClick={handleSave}>保存</Button>
+          <Button onClick={handleClose}>{t("cancel")}</Button>
+          <Button onClick={handleSave}>{t("save")}</Button>
         </DialogActions>
       </Dialog>
     </Box>

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Typography, Avatar, Box, LinearProgress, Grid } from "@mui/material";
 import axiosInstance from "../../utils/axiosInstance";
 import { keyframes } from "@mui/system";
+import { useTranslation } from "react-i18next";
 
 // 定义关键帧动画
 const gradientShift = keyframes`
@@ -18,6 +19,7 @@ const borderAnimation = keyframes`
 `;
 
 const AnimeLiked = () => {
+  const { t } = useTranslation();
   const user = useSelector((state) => state.user.user);
   const [likedAnimes, setLikedAnimes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -65,7 +67,7 @@ const AnimeLiked = () => {
   return (
     <Box sx={{ padding: 3, maxWidth: "1200px", margin: "0 auto" }}>
       <Typography variant="h4" gutterBottom>
-        动漫收藏
+        {t("animeCollection")}
       </Typography>
       <Box
         sx={{
@@ -94,7 +96,8 @@ const AnimeLiked = () => {
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    background: "linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%)",
+                    background:
+                      "linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%)",
                     opacity: 0,
                     transition: "opacity 0.3s ease-out",
                     zIndex: 1,
@@ -117,8 +120,10 @@ const AnimeLiked = () => {
                       left: 0,
                       right: 0,
                       bottom: 0,
-                      background: "linear-gradient(90deg, #ed6000 50%, transparent 50%), linear-gradient(90deg, #ed6000 50%, transparent 50%), linear-gradient(0deg, #ed6000 50%, transparent 50%), linear-gradient(0deg, #ed6000 50%, transparent 50%)",
-                      backgroundRepeat: "repeat-x, repeat-x, repeat-y, repeat-y",
+                      background:
+                        "linear-gradient(90deg, #ed6000 50%, transparent 50%), linear-gradient(90deg, #ed6000 50%, transparent 50%), linear-gradient(0deg, #ed6000 50%, transparent 50%), linear-gradient(0deg, #ed6000 50%, transparent 50%)",
+                      backgroundRepeat:
+                        "repeat-x, repeat-x, repeat-y, repeat-y",
                       backgroundSize: "15px 2px, 15px 2px, 2px 15px, 2px 15px",
                       backgroundPosition: "0 0, 100% 100%, 0 100%, 100% 0",
                       animation: `${borderAnimation} 1s infinite linear`,
@@ -151,13 +156,13 @@ const AnimeLiked = () => {
                     }}
                   />
                 </Box>
-                <Typography 
-                  variant="subtitle2" 
-                  align="center" 
-                  sx={{ 
+                <Typography
+                  variant="subtitle2"
+                  align="center"
+                  sx={{
                     mt: 1,
                     mb: 0.5,
-                    zIndex: 3, 
+                    zIndex: 3,
                     position: "relative",
                     fontSize: "0.8rem",
                     lineHeight: 1.2,

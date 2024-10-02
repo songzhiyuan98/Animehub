@@ -5,6 +5,7 @@ import axios from "axios"; // 导入axios库
 import { useDispatch } from "react-redux";
 import { login } from "../redux/actions/userActions";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   TextField,
   Button,
@@ -18,6 +19,7 @@ import {
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 const Login = () => {
+  const { t } = useTranslation();
   const [identifier, setIdentifier] = useState(""); // 用户名或邮箱
   const [password, setPassword] = useState(""); // 密码
   const [message, setMessage] = useState(""); // 错误或成功消息
@@ -36,7 +38,7 @@ const Login = () => {
 
     // 检查是否填写了所有必填字段
     if (!identifier || !password) {
-      setMessage("请填写所有必填字段");
+      setMessage(t("fillAllFields"));
       return;
     }
 
@@ -63,14 +65,14 @@ const Login = () => {
       // 错误处理
       if (error.response) {
         if (error.response.status === 401) {
-          setMessage("用户名或密码错误");
+          setMessage(t("incorrectCredentials"));
         } else if (error.response.status === 403) {
-          setMessage("您的账号已被禁用，请联系管理员");
+          setMessage(t("accountDisabled"));
         } else {
-          setMessage("登录失败，请稍后再试");
+          setMessage(t("loginFailed"));
         }
       } else {
-        setMessage("无法连接到服务器，请检查您的网络连接");
+        setMessage(t("serverConnectionError"));
       }
     }
   };
@@ -96,18 +98,18 @@ const Login = () => {
           }}
         >
           <Typography variant="h5" align="center" gutterBottom>
-            登录
+            {t("login")}
           </Typography>
           <form onSubmit={handleLogin}>
             <TextField
-              label="用户名/电子邮箱"
+              label={t("usernameOrEmail")}
               fullWidth
               margin="normal"
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
             />
             <TextField
-              label="密码"
+              label={t("password")}
               type={showPassword ? "text" : "password"}
               fullWidth
               margin="normal"
@@ -128,7 +130,7 @@ const Login = () => {
               }}
             />
             <Button type="submit" variant="contained" color="primary" fullWidth>
-              登录
+              {t("login")}
             </Button>
           </form>
           {message && (
@@ -137,7 +139,7 @@ const Login = () => {
             </Typography>
           )}
           <Typography variant="body2" align="center" sx={{ marginTop: 2 }}>
-            还没有账号？ <Link href="/register">注册</Link>
+            {t("noAccount")} <Link href="/register">{t("register")}</Link>
           </Typography>
         </Box>
       </Container>

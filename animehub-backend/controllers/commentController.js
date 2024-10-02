@@ -26,7 +26,8 @@ const populateReplies = async (comments) => {
 exports.getAnimeComments = async (req, res) => {
   try {
     let comments = await Comment.find({
-      animeId: req.params.animeId,
+      contentId: req.params.animeId,
+      contentType: "anime",
       parentId: null,
     })
       .populate("userId", "username nickname avatar")
@@ -40,32 +41,50 @@ exports.getAnimeComments = async (req, res) => {
     res.status(500).send("服务器错误");
   }
 };
-//发表评论，接受路径参数animeId，请求头参数content，http://localhost:3000/api/anime/52291/comments
+
+//获取帖子评论，postman功能验证已通过，接受路径参数postId，http://localhost:3000/api/posts/666666666666666666666666/comments
+exports.getPostComments = async (req, res) => {
+  try {
+    let comments = await Comment.find({
+      contentId: req.params.postId,
+      contentType: "post",
+      parentId: null,
+    })
+      .populate("userId", "username nickname avatar")
+      .sort({ createdAt: -1 });
+
+    await populateReplies(comments);
+
+    res.json(comments);
+  } catch (err) {
+    console.error("Error fetching comments:", err);
+    res.status(500).send("服务器错误");
+  }
+}
+//发表动漫评论，接受路径参数animeId，请求头参数content，http://localhost:3000/api/anime/52291/comments
 exports.postComment = async (req, res) => {
   try {
     const newComment = new Comment({
-      animeId: req.params.animeId,
+      contentId: req.params.animeId,
+      contentType: "anime",
       userId: req.user.userId,
       content: req.body.content,
     });
     const comment = await newComment.save();
 
-    // 在后端 WebSocket 事件处理中
     const populatedComment = await Comment.findById(newComment._id).populate(
       "userId",
       "nickname avatar"
     );
 
-    //使用notificationSerive创建通知
     const notifications = await NotificationService.notifyAnimeComment(
       req.params.animeId,
       populatedComment._id,
       req.user.userId
-    ); //生成并储存通知给所有收藏该动漫的用户
+    );
 
     const io = getIO();
 
-    // 通过 WebSocket 发送创建的通知
     notifications.forEach((notification) => {
       io.to(notification.recipient.toString()).emit(
         "newNotification",
@@ -73,7 +92,6 @@ exports.postComment = async (req, res) => {
       );
     });
 
-    //发送websocket通知
     io.to(req.params.animeId).emit("newComment", {
       comment: populatedComment,
       animeId: req.params.animeId,
@@ -86,46 +104,30 @@ exports.postComment = async (req, res) => {
   }
 };
 
-//回复评论，接受路径参数动漫id，请求头参数content，这是父评论的id，如果不存在，则返回该父评论不存在无法评论，http://localhost:3000/api/comments/${commentId}/reply
-exports.replyToComment = async (req, res) => {
+//发表帖子评论，接受路径参数postId，请求头参数content，http://localhost:3000/api/posts/666666666666666666666666/comments
+exports.postPostComment = async (req, res) => {
   try {
-    const parentComment = await Comment.findById(req.params.commentId); //从路径参数提取父评论id并查找数据库
-    //如果父评论不存在
-    if (!parentComment) {
-      return res.status(404).json({ message: "评论不存在" });
-    }
-    //如果父评论存在且被找到
-    const newReply = new Comment({
-      animeId: parentComment.animeId, //评论所属动漫与父评论一致
-      userId: req.user.userId, //从jwt认证中提取user信息
+    const newComment = new Comment({
+      contentId: req.params.postId,
+      contentType: "post",
+      userId: req.user.userId,
       content: req.body.content,
-      parentId: parentComment._id,
     });
+    const comment = await newComment.save();
 
-    const reply = await newReply.save();
-    parentComment.replies.push(reply._id); //在父评论里也保存子评论id
-    await parentComment.save();
-
-    // 填充回复评论的用户信息
-    const populatedReply = await Comment.findById(reply._id).populate(
+    const populatedComment = await Comment.findById(newComment._id).populate(
       "userId",
       "nickname avatar"
     );
 
-    // 使用 NotificationService 创建回复通知
-    const notification = await NotificationService.notifyCommentReply(
-      parentComment._id,
-      populatedReply._id,
-      req.user.userId,
-      "anime",
-      parentComment.animeId
+    const notification = await NotificationService.notifyPostComment(
+      req.params.postId,
+      populatedComment._id,
+      req.user.userId
     );
+
     const io = getIO();
 
-    console.log("parentComment.userId:", parentComment.userId.toString());
-    console.log("req.user.userId:", req.user.userId.toString());
-
-    // 发送 WebSocket 通知给父评论的作者
     if (notification) {
       io.to(notification.recipient.toString()).emit(
         "newNotification",
@@ -133,27 +135,68 @@ exports.replyToComment = async (req, res) => {
       );
     }
 
-    // 发送 WebSocket 通知
-    io.to(parentComment.animeId).emit("newReply", {
+    io.to(req.params.postId).emit("newComment", {
+      comment: populatedComment,
+      postId: req.params.postId,
+    });
+
+    res.status(201).json(populatedComment);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("服务器错误");
+  }
+}
+
+//回复评论，接受路径参数动漫id，请求头参数content，这是父评论的id，如果不存在，则返回该父评论不存在无法评论，http://localhost:3000/api/comments/${commentId}/reply
+exports.replyToComment = async (req, res) => {
+  try {
+    const parentComment = await Comment.findById(req.params.commentId);
+    if (!parentComment) {
+      return res.status(404).json({ message: "评论不存在" });
+    }
+
+    const newReply = new Comment({
+      contentId: parentComment.contentId,
+      contentType: parentComment.contentType,
+      userId: req.user.userId,
+      content: req.body.content,
+      parentId: parentComment._id,
+    });
+
+    const reply = await newReply.save();
+    parentComment.replies.push(reply._id);
+    await parentComment.save();
+
+    const populatedReply = await Comment.findById(reply._id).populate(
+      "userId",
+      "nickname avatar"
+    );
+
+    const notifications = await NotificationService.notifyCommentReply(
+      parentComment._id,
+      populatedReply._id,
+      req.user.userId,
+      parentComment.contentType,
+      parentComment.contentId
+    );
+
+    console.log("notifications", notifications);
+    
+    const io = getIO();
+
+    // 发送所有创建的通知
+    notifications.forEach(notification => {
+      io.to(notification.recipient.toString()).emit(
+        "newNotification",
+        notification
+      );
+    });
+
+    io.to(parentComment.contentId).emit("newReply", {
       reply: populatedReply,
       parentCommentId: parentComment._id,
-      animeId: parentComment.animeId,
+      [parentComment.contentType === "anime" ? "animeId" : "postId"]: parentComment.contentId,
     });
-    console.log(
-      `WebSocket消息已发送给用户: ${parentComment.userId.toString()}`
-    );
-    console.log(
-      "发送的消息内容:",
-      JSON.stringify(
-        {
-          reply: populatedReply,
-          parentCommentId: parentComment._id,
-          animeId: parentComment.animeId,
-        },
-        null,
-        2
-      )
-    );
 
     res.status(201).json(populatedReply);
   } catch (error) {

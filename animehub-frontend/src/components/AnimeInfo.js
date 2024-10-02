@@ -1,13 +1,12 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
-import { useLocation } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import axiosInstance from "../utils/axiosInstance";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import LoginPromptDialog from "./LoginPromptDialog";
-import { useNavigate } from "react-router-dom"; //导航钩子
-import Comment from "./Comment"; // 确保路径正确
-import "../style.css"; // 确保路径正确
+import Comment from "./Comment";
+import "../style.css";
 import {
   Button,
   Container,
@@ -18,12 +17,15 @@ import {
   CircularProgress,
   Avatar,
   TextField,
+  Grid,
 } from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
-import io from "socket.io-client"; //websocket客户端，前端还未安装依赖
+import io from "socket.io-client";
+import FullSynopsisDialog from "./FullSynopsisDialog";
 
 const AnimeInfo = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const user = useSelector((state) => state.user.user);
   const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
@@ -34,8 +36,10 @@ const AnimeInfo = () => {
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
-  const [isCommentsLoading, setIsCommentsLoading] = useState(true); //监控评论获取加载状态
+  const [isCommentsLoading, setIsCommentsLoading] = useState(true);
   const location = useLocation();
+  const [isSynopsisDialogOpen, setIsSynopsisDialogOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // 当组件挂载或 location 改变时，滚动到页面顶部
@@ -148,8 +152,6 @@ const AnimeInfo = () => {
     return () => socket.disconnect();
   }, [id]);
 
-  const navigate = useNavigate();
-
   //处理添加评论函数，修改过还未验证，修改了不保存结果到newComment，通过websocket监听来实时更新
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
@@ -251,10 +253,19 @@ const AnimeInfo = () => {
     }
   };
 
-  //限制字符300子以内函数
-  const truncatedSynopsis = (text) => {
-    if (!text) return ""; // 如果 text 是 null 或 undefined，返回空字符串
-    return text.length > 300 ? text.substring(0, 300) + "..." : text;
+  const truncatedSynopsis = (text, maxLength = 350) => {
+    if (!text) return "";
+    return text.length > maxLength
+      ? text.substring(0, maxLength) + "..."
+      : text;
+  };
+
+  const handleOpenSynopsisDialog = () => {
+    setIsSynopsisDialogOpen(true);
+  };
+
+  const handleCloseSynopsisDialog = () => {
+    setIsSynopsisDialogOpen(false);
   };
 
   //加载动画
@@ -279,7 +290,7 @@ const AnimeInfo = () => {
         }}
       >
         <Container maxWidth={false} sx={{ marginTop: 2 }}>
-          <Typography>找不到该动漫</Typography>
+          <Typography>{t("animeNotFound")}</Typography>
         </Container>
       </Box>
     );
@@ -353,12 +364,17 @@ const AnimeInfo = () => {
                   {anime.title_japanese}
                 </Typography>
                 <Typography variant="body1" gutterBottom>
-                  {`Year: ${anime.aired.prop.from.year} | Status: ${anime.status}`}
+                  {t("yearStatus", {
+                    year: anime.aired.prop.from.year,
+                    status: anime.status,
+                  })}
                 </Typography>
                 <Typography variant="body2" color="textSecondary">
-                  {`Type: ${anime.type} | Episodes: ${
-                    anime.episodes
-                  } | ${anime.genres.map((genre) => genre.name).join(" | ")}`}
+                  {t("animeDetails", {
+                    type: anime.type,
+                    episodes: anime.episodes,
+                    genres: anime.genres.map((genre) => genre.name).join(" | "),
+                  })}
                 </Typography>
               </Box>
             </Box>
@@ -374,7 +390,7 @@ const AnimeInfo = () => {
                 }}
               >
                 <Typography variant="h6" gutterBottom>
-                  简介
+                  {t("synopsis")}
                 </Typography>
                 <Box>
                   <Typography variant="body2" color="text.secondary">
@@ -384,22 +400,23 @@ const AnimeInfo = () => {
                 <Button
                   color="primary"
                   sx={{ position: "absolute", right: 0, bottom: 10 }}
+                  onClick={handleOpenSynopsisDialog}
                 >
-                  查看更多
+                  {t("viewMore")}
                 </Button>
               </Box>
               <Box sx={{ height: "50%", padding: 2 }}>
                 <Typography variant="h6" gutterBottom>
-                  统计数据
+                  {t("statistics")}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {`Liked: ${anime.favorites}`}
+                  {t("liked", { count: anime.favorites })}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {`Score: ${anime.score}`}
+                  {t("scoreAnime", { score: anime.score })}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {`Scored by: ${anime.scored_by}`}
+                  {t("scoredByAnime", { count: anime.scored_by })}
                 </Typography>
               </Box>
             </Box>
@@ -420,14 +437,9 @@ const AnimeInfo = () => {
                 },
               }}
               onClick={() => {
-                console.log("Favorite button clicked");
                 if (isLoggedIn) {
-                  console.log(
-                    "User is logged in, calling handleFavoriteToggle"
-                  );
                   handleFavoriteToggle();
                 } else {
-                  console.log("User is not logged in, opening dialog");
                   handleOpenDialog();
                 }
               }}
@@ -464,7 +476,7 @@ const AnimeInfo = () => {
         {/* 评论部分 */}
         <Box sx={{ padding: 3 }}>
           <Typography variant="h4" gutterBottom>
-            评论
+            {t("commentsZone")}
           </Typography>
           <Box
             sx={{
@@ -483,10 +495,10 @@ const AnimeInfo = () => {
                   rows={3}
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="写下你的评论..."
+                  placeholder={t("writeYourComment")}
                 />
                 <Button onClick={handleAddComment} sx={{ mt: 1 }}>
-                  发表评论
+                  {t("postComment")}
                 </Button>
               </Box>
             ) : null}
@@ -505,7 +517,7 @@ const AnimeInfo = () => {
             {!isLoggedIn && (
               <Box sx={{ textAlign: "center", mt: "auto" }}>
                 <Typography variant="body1" sx={{ mt: 1 }}>
-                  请登录后发表评论
+                  {t("loginToComment")}
                 </Typography>
               </Box>
             )}
@@ -513,6 +525,11 @@ const AnimeInfo = () => {
         </Box>
       </Container>
       <LoginPromptDialog open={isDialogOpen} handleClose={handleCloseDialog} />
+      <FullSynopsisDialog
+        open={isSynopsisDialogOpen}
+        handleClose={handleCloseSynopsisDialog}
+        synopsis={anime?.synopsis}
+      />
     </Box>
   );
 };

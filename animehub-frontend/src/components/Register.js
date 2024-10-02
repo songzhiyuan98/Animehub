@@ -1,6 +1,7 @@
 // src/components/Register.js
 import React, { useState, useEffect } from "react"; //导入React，useState状态变量
 import axiosInstance from "../utils/axiosInstance";
+import { useTranslation } from "react-i18next";
 import {
   TextField,
   Button,
@@ -20,6 +21,7 @@ import { useNavigate } from "react-router-dom";
 
 //创建react函数组件Register
 const Register = () => {
+  const { t } = useTranslation();
   const [username, setUsername] = useState(""); //定义状态变量username，初始化为空字符串
   const [password, setPassword] = useState(""); //定义状态变量password，初始化为空字符串
   const [strength, setStrength] = useState(0); //定义状态变量密码强度，表示已满足的密码强度
@@ -91,7 +93,7 @@ const Register = () => {
   const sendVerificationCode = async () => {
     //检查邮箱字段是否为空
     if (!email) {
-      setMessage("请输入邮箱");
+      setMessage(t("enterEmail"));
       return;
     }
 
@@ -111,7 +113,7 @@ const Register = () => {
   const verifyCode = async () => {
     //检查邮箱和验证码字段为否为空
     if (!email || !verificationCode) {
-      setMessage("请先输入邮箱和验证码");
+      setMessage(t("enterEmailAndCode"));
       return;
     }
 
@@ -137,22 +139,22 @@ const Register = () => {
       !password ||
       !confirmPassword
     ) {
-      setMessage("请填写所有必填字段");
+      setMessage(t("fillAllFields"));
       return;
     }
     //检查密码长度
     if (!passwordError.length) {
-      setMessage("确保密码至少八个字符");
+      setMessage(t("passwordTooShort"));
       return;
     }
     //检查密码是否符合要求
     if (strength < 3) {
-      setMessage("密码不符合要求，请检查");
+      setMessage(t("passwordNotMeetRequirements"));
       return;
     }
     //检查确认密码是否和密码匹配
     if (confirmPassword !== password) {
-      setMessage("确认密码和密码不匹配，请检查你的密码");
+      setMessage(t("passwordsDoNotMatch"));
       return;
     }
     try {
@@ -180,14 +182,14 @@ const Register = () => {
     } catch (error) {
       //异步函数发送http请求，捕获失败消息并更新状态变量message
       setMessage(
-        "注册失败: " +
+        t("registrationFailed") +
           (error.response ? error.response.data.message : error.message)
       );
     }
   };
 
   //根据消息内容决定显示颜色
-  const messageColor = message.includes("成功") ? "#28a745" : "error";
+  const messageColor = message.includes(t("success")) ? "#28a745" : "error";
 
   //返回html页面
   return (
@@ -211,11 +213,11 @@ const Register = () => {
           }}
         >
           <Typography variant="h5" align="center" gutterBottom>
-            注册
+            {t("register")}
           </Typography>
           <form onSubmit={handleRegister}>
             <TextField
-              label="用户名"
+              label={t("username")}
               fullWidth
               margin="normal"
               value={username}
@@ -224,7 +226,7 @@ const Register = () => {
             <Grid container spacing={2}>
               <Grid item xs={8}>
                 <TextField
-                  label="电子邮箱"
+                  label={t("email")}
                   margin="normal"
                   fullWidth
                   value={email}
@@ -244,7 +246,9 @@ const Register = () => {
                     fullWidth
                     disabled={countdown > 0}
                   >
-                    {countdown > 0 ? `${countdown}秒后重新发送` : "发送验证码"}
+                    {countdown > 0
+                      ? t("resendIn", { seconds: countdown })
+                      : t("sendCode")}
                   </Button>
                 </Box>
               </Grid>
@@ -252,7 +256,7 @@ const Register = () => {
             <Grid container spacing={2}>
               <Grid item xs={8}>
                 <TextField
-                  label="验证码"
+                  label={t("verificationCode")}
                   fullWidth
                   margin="normal"
                   value={verificationCode}
@@ -267,24 +271,24 @@ const Register = () => {
                   height="100%"
                 >
                   <Button onClick={verifyCode} color="primary" fullWidth>
-                    验证
+                    {t("verify")}
                   </Button>
                 </Box>
               </Grid>
             </Grid>
             <TextField
-              label="密码"
+              label={t("password")}
               fullWidth
               margin="normal"
               value={password}
               onChange={handlePasswordChange}
-              onFocus={() => setShowRequirements(true)} // 输入框获取焦点时显示要求
-              onBlur={() => setShowRequirements(false)} // 输入框失去焦点时隐藏要求
+              onFocus={() => setShowRequirements(true)}
+              onBlur={() => setShowRequirements(false)}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
                     <Tooltip
-                      title="密码要求：至少8个字符(强制要求)，包含大写字母、小写字母、数字和特殊字符,至少满足三个要求及以上"
+                      title={t("passwordRequirements")}
                       open={showTooltip}
                     >
                       <IconButton
@@ -300,66 +304,77 @@ const Register = () => {
             />
             {showRequirements && (
               <Box mt={2}>
-                <Typography variant="subtitle1">密码强度：</Typography>
+                <Typography variant="subtitle1">
+                  {t("passwordStrength")}：
+                </Typography>
                 <LinearProgress
-                  variant="determinate" //定义该进度条有一个确定的值
-                  value={(strength / 5) * 100} //根据强度判断进度条占据多少位置
+                  variant="determinate"
+                  value={(strength / 5) * 100}
                   sx={{
-                    height: 3, //定义进度条高度10px
-                    backgroundColor: "lightgrey", //定义默认背景灰色
+                    height: 3,
+                    backgroundColor: "lightgrey",
                     "& .MuiLinearProgress-bar": {
-                      backgroundColor: getStrengthColor(), //定义加载进度条背景为调用getStrength函数
+                      backgroundColor: getStrengthColor(),
                     },
                   }}
                 />
                 <Box mt={1}>
                   <Typography variant="body2" color={getStrengthColor()}>
-                    {strength < 3 ? "弱" : strength < 5 ? "中等" : "强"}密码
+                    {strength < 3
+                      ? t("weak")
+                      : strength < 5
+                      ? t("medium")
+                      : t("strong")}{" "}
+                    {t("password")}
                   </Typography>
                 </Box>
-                <Typography variant="subtitle1">密码要求：</Typography>
+                <Typography variant="subtitle1">
+                  {t("passwordRequirements")}：
+                </Typography>
                 <Typography
                   variant="body2"
                   color={passwordError.length ? "green" : "red"}
                 >
-                  {passwordError.length ? "✔️" : "❌"} 至少8个字符
+                  {passwordError.length ? "✔️" : "❌"} {t("atLeast8Chars")}
                 </Typography>
                 <Typography
                   variant="body2"
                   color={passwordError.uppercase ? "green" : "red"}
                 >
-                  {passwordError.uppercase ? "✔️" : "❌"} 包含大写字母
+                  {passwordError.uppercase ? "✔️" : "❌"}{" "}
+                  {t("includeUppercase")}
                 </Typography>
                 <Typography
                   variant="body2"
                   color={passwordError.lowercase ? "green" : "red"}
                 >
-                  {passwordError.lowercase ? "✔️" : "❌"} 包含小写字母
+                  {passwordError.lowercase ? "✔️" : "❌"}{" "}
+                  {t("includeLowercase")}
                 </Typography>
                 <Typography
                   variant="body2"
                   color={passwordError.number ? "green" : "red"}
                 >
-                  {passwordError.number ? "✔️" : "❌"} 包含数字
+                  {passwordError.number ? "✔️" : "❌"} {t("includeNumber")}
                 </Typography>
                 <Typography
                   variant="body2"
                   color={passwordError.specialChar ? "green" : "red"}
                 >
-                  {passwordError.specialChar ? "✔️" : "❌"} 包含特殊字符
-                  (!@#$%^&*)
+                  {passwordError.specialChar ? "✔️" : "❌"}{" "}
+                  {t("includeSpecialChar")}
                 </Typography>
               </Box>
             )}
             <TextField
-              label="确认密码"
+              label={t("confirmPassword")}
               fullWidth
               margin="normal"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
             <Button type="submit" variant="contained" color="primary" fullWidth>
-              注册
+              {t("register")}
             </Button>
           </form>
           {message && (

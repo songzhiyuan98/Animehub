@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import axiosInstance from "../utils/axiosInstance";
 import axios from "axios";
+import { useTranslation } from "react-i18next";
 import {
   TextField,
   Button,
@@ -19,12 +20,14 @@ import {
 } from "@mui/material";
 
 const AnimeVideo = () => {
-  const { id } = useParams(); //从请求路径获取动漫id
+  const { t, i18n } = useTranslation();
+  const currentLanguage = i18n.language;
+  const { id } = useParams();
   const user = useSelector((state) => state.user.user);
   const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
-  const [videos, setVideos] = useState([]); //从该动漫id获取的所有视频信息数组
-  const [currentVideo, setCurrentVideo] = useState(null); //当前播放的视频信息
-  const [loading, setLoading] = useState(true); //设置加载状态
+  const [videos, setVideos] = useState([]);
+  const [currentVideo, setCurrentVideo] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchPromoVideos = async () => {
@@ -71,20 +74,32 @@ const AnimeVideo = () => {
     setCurrentVideo(video); //更新当前播放视频状态
   };
 
+  //获取youtube语言代码，根据当前语言设置，后续可能更新
+  const getYouTubeLanguageCode = (language) => {
+    switch (language) {
+      case "zh":
+        return "zh-Hans";
+      case "en":
+        return "en";
+      // 添加其他语言的情况
+      default:
+        return "en"; // 默认使用英语
+    }
+  };
+
   const getVideoTypeLabel = (video) => {
     if (video.type === "promo") {
-      return "预告片";
+      return t("trailer");
     } else if (video.type === "music") {
-      // 从 title 中提取 OP 或 ED 信息
       const match = video.title.match(/(OP|ED)\s*(\d+)?/i);
       if (match) {
         const type = match[1].toUpperCase();
         const number = match[2] || "";
         return `${type}${number}`;
       }
-      return "音乐视频";
+      return t("musicVideo");
     }
-    return "未知类型";
+    return t("unknownType");
   };
 
   if (loading) {
@@ -104,7 +119,7 @@ const AnimeVideo = () => {
       <Container maxWidth={false} sx={{ marginTop: 0 }}>
         <Box sx={{ padding: 3 }}>
           <Typography variant="h4" gutterBottom>
-            PV/OP/ED 精选播放
+            {t("pvOpEdSelection")}
           </Typography>
           <Box
             sx={{
@@ -119,7 +134,6 @@ const AnimeVideo = () => {
               position: "relative",
             }}
           >
-            {/* Left Box - Current Video */}
             <Box sx={{ width: "60%", marginRight: 2 }}>
               {currentVideo && (
                 <>
@@ -142,14 +156,15 @@ const AnimeVideo = () => {
                       currentVideo.type === "promo"
                         ? currentVideo.trailer.youtube_id
                         : currentVideo.video.youtube_id
-                    }&rel=0&modestbranding=1&controls=1&cc_load_policy=1&cc_lang_pref=zh-Hans&hl=zh-Hans`}
+                    }&rel=0&modestbranding=1&controls=1&cc_load_policy=1&cc_lang_pref=${getYouTubeLanguageCode(
+                      currentLanguage
+                    )}&hl=${getYouTubeLanguageCode(currentLanguage)}`}
                     frameBorder="0"
                     allowFullScreen
                   ></iframe>
                 </>
               )}
             </Box>
-            {/* Right Box - Video List */}
             <Box
               sx={{
                 width: "35%",
@@ -159,7 +174,7 @@ const AnimeVideo = () => {
               }}
             >
               <Typography variant="h6" gutterBottom>
-                Video List
+                {t("videoList")}
               </Typography>
               <List>
                 {videos.map((video, index) => (
@@ -175,7 +190,7 @@ const AnimeVideo = () => {
                       primary={video.title}
                       secondary={
                         video.type === "promo"
-                          ? "预告片"
+                          ? t("trailer")
                           : `${getVideoTypeLabel(video)} - ${
                               video.meta?.author || ""
                             }`

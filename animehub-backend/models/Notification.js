@@ -15,7 +15,7 @@ const NotificationSchema = new mongoose.Schema({
   }, //通知发送者
   type: {
     type: String,
-    enum: ["comment", "reply", "post_comment"],
+    enum: ['anime_comment', 'post_comment', 'anime_reply', 'post_reply', 'post_reply_author'],
     required: true,
   }, //通知类型
   contentType: {

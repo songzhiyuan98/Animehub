@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Box,
   Typography,
@@ -12,6 +13,7 @@ import { Reply } from "lucide-react"; // 引入图标
 const BASE_URL = "http://localhost:3000";
 
 const Comment = ({ comment, onReply, currentUser, depth = 0 }) => {
+  const { t } = useTranslation();
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [replyContent, setReplyContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -26,7 +28,7 @@ const Comment = ({ comment, onReply, currentUser, depth = 0 }) => {
   };
 
   const getUserInfo = (user) => ({
-    username: user?.nickname || "Anonymous",
+    username: user?.nickname || t("anonymousUser"),
     avatar: user?.avatar ? `${BASE_URL}${user.avatar}` : undefined,
   });
 
@@ -34,7 +36,7 @@ const Comment = ({ comment, onReply, currentUser, depth = 0 }) => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return isNaN(date.getTime()) ? "Invalid Date" : date.toLocaleString();
+    return isNaN(date.getTime()) ? t("invalidDate") : date.toLocaleString();
   };
 
   return (
@@ -89,7 +91,7 @@ const Comment = ({ comment, onReply, currentUser, depth = 0 }) => {
             sx={{ mt: 1 }}
             startIcon={<Reply size={16} />}
           >
-            {showReplyForm ? "收起" : "回复"}
+            {showReplyForm ? t("collapse") : t("reply")}
           </Button>
         )}
         {showReplyForm && (
@@ -100,10 +102,10 @@ const Comment = ({ comment, onReply, currentUser, depth = 0 }) => {
               rows={2}
               value={replyContent}
               onChange={(e) => setReplyContent(e.target.value)}
-              placeholder="写下你的回复..."
+              placeholder={t("writeYourReply")}
             />
             <Button onClick={handleReply} sx={{ mt: 1 }} disabled={isLoading}>
-              {isLoading ? <CircularProgress size={24} /> : "提交回复"}
+              {isLoading ? <CircularProgress size={24} /> : t("submitReply")}
             </Button>
           </Box>
         )}

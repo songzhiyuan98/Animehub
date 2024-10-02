@@ -17,17 +17,11 @@ import MenuIcon from "@mui/icons-material/Menu"; //menu图标
 import { Link } from "react-router-dom"; //react链接功能
 import { useSelector, useDispatch } from "react-redux"; //redux选择器，派发
 import { logout } from "../redux/actions/userActions"; //登出redux reducer
+import { useTranslation } from "react-i18next";
 import {
   clearNotifications,
   fetchUnreadCount,
 } from "../redux/actions/notificationActions";
-
-//定义导航栏页面
-const pages = [
-  { name: "首页", path: "/" },
-  { name: "动漫星球", path: "/index" },
-  { name: "帖子专区", path: "/posts" },
-];
 
 //定义用户菜单设置项
 //const setting = ['用户中心', '登出'];
@@ -42,7 +36,7 @@ const Navbar = () => {
   const [anchorElNav, setAnchorElNar] = React.useState(null); //定义导航菜单锚点状态
   const [anchorElUser, setAnchorElUser] = React.useState(null); //定义用户菜单锚点状态
   const [avatarSrc, setAvatarSrc] = useState(""); // 状态管理头像
-
+  const { t } = useTranslation(); // 使用useTranslation钩子获取翻译函数
   useEffect(() => {
     if (user && user.avatar) {
       setAvatarSrc(`${BASE_URL}${user.avatar}`);
@@ -56,6 +50,13 @@ const Navbar = () => {
       dispatch(fetchUnreadCount()); // 获取未读消息数量
     }
   }, [dispatch, isLoggedIn]);
+
+  //定义导航栏页面
+  const pages = [
+    { name: t("home"), path: "/" },
+    { name: t("anime"), path: "/index" },
+    { name: t("community"), path: "/posts" },
+  ];
 
   //打开导航菜单函数,接收一个event作为参数，是点击按钮的名称,pages的属性
   const handleOpenNavMenu = (event) => {
@@ -215,10 +216,12 @@ const Navbar = () => {
                     to="/user-center"
                     onClick={handleCloseUserMenu}
                   >
-                    <Typography textAlign="center">用户中心</Typography>
+                    <Typography textAlign="center">
+                      {t("userCenter")}
+                    </Typography>
                   </MenuItem>
                   <MenuItem onClick={handleLogout}>
-                    <Typography textAlign="center">登出</Typography>
+                    <Typography textAlign="center">{t("logout")}</Typography>
                   </MenuItem>
                 </Menu>
               </>
@@ -228,7 +231,7 @@ const Navbar = () => {
                 to="/login"
                 sx={{ my: 2, color: "#333333", display: "block" }}
               >
-                登录
+                {t("login")}
               </Button>
             )}
           </Box>

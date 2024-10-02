@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import axiosInstance from "../utils/axiosInstance";
 import {
   AppBar,
@@ -24,6 +25,7 @@ import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import { ThumbUp, ChatBubbleOutline, AccessTime } from "@mui/icons-material";
 
 const Home = () => {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [recommendations, setRecommendations] = useState([]);
   const [currentAnimePage, setCurrentAnimePage] = useState(0);
@@ -135,14 +137,14 @@ const Home = () => {
   };
 
   const truncateText = (text, length) => {
-    if (!text) return '';
+    if (!text) return "";
     return text.length > length ? text.substring(0, length) + "..." : text;
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return ''; // 如果没有日期字符串，返回空字符串
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('zh-CN', options);
+    if (!dateString) return ""; // 如果没有日期字符串，返回空字符串
+    const options = { year: "numeric", month: "long", day: "numeric" };
+    return new Date(dateString).toLocaleDateString(t("locale"), options);
   };
 
   if (loadingAnime) {
@@ -172,7 +174,7 @@ const Home = () => {
               }}
             />
             <Typography variant="h4" gutterBottom sx={{ mt: 2 }}>
-              热门日推
+              {t("dailyRecommendations")}
             </Typography>
           </Box>
           <Box
@@ -271,7 +273,7 @@ const Home = () => {
               }}
             />
             <Typography variant="h4" gutterBottom sx={{ mt: 2 }}>
-              热门帖子
+              {t("hotPosts")}
             </Typography>
           </Box>
           <Box sx={{ padding: 0, mt: 3, position: "relative" }}>
@@ -301,32 +303,57 @@ const Home = () => {
               >
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={9}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                      <Avatar src={post.author?.avatar ? `${BASE_URL}${post.author.avatar}` : undefined} sx={{ mr: 1 }} />
+                    <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+                      <Avatar
+                        src={
+                          post.author?.avatar
+                            ? `${BASE_URL}${post.author.avatar}`
+                            : undefined
+                        }
+                        sx={{ mr: 1 }}
+                      />
                       <Typography variant="subtitle1" color="text.secondary">
-                        {post.author?.username || '匿名用户'}
+                        {post.author?.nickname || t("anonymousUser")}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ ml: 2 }}
+                      >
                         {formatDate(post.createdAt)}
                       </Typography>
                     </Box>
                     <Typography variant="h5" component="div" gutterBottom>
                       {post.title}
                     </Typography>
-                    <Typography variant="body1" color="text.secondary" paragraph>
+                    <Typography
+                      variant="body1"
+                      color="text.secondary"
+                      paragraph
+                    >
                       {truncateText(post.previewText, 150)}
                     </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-                      {post.category && <Chip label={post.category} size="small" sx={{ mr: 1 }} />}
+                    <Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
+                      {post.category && (
+                        <Chip
+                          label={t(post.category)}
+                          size="small"
+                          sx={{ mr: 1 }}
+                        />
+                      )}
                       <AccessTime fontSize="small" sx={{ mr: 0.5 }} />
                       <Typography variant="body2" color="text.secondary">
-                        {post.readTime} 分钟阅读
+                        {t("readTime", { minutes: post.readTime })}
                       </Typography>
                       <Box sx={{ flexGrow: 1 }} />
                       <IconButton size="small" sx={{ mr: 1 }}>
                         <ThumbUp fontSize="small" />
                       </IconButton>
-                      <Typography variant="body2" color="text.secondary" sx={{ mr: 2 }}>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ mr: 2 }}
+                      >
                         {post.likes?.length || 0}
                       </Typography>
                       <IconButton size="small" sx={{ mr: 1 }}>
@@ -337,15 +364,20 @@ const Home = () => {
                       </Typography>
                     </Box>
                   </Grid>
-                  <Grid item xs={12} md={3} sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Grid
+                    item
+                    xs={12}
+                    md={3}
+                    sx={{ display: "flex", alignItems: "center" }}
+                  >
                     {post.coverImage && (
                       <Avatar
                         src={`http://localhost:3000${post.coverImage}`}
                         variant="rounded"
                         sx={{
-                          width: '100%',
-                          height: '100%',
-                          maxHeight: '200px',
+                          width: "100%",
+                          height: "100%",
+                          maxHeight: "200px",
                           objectFit: "cover",
                         }}
                       />
