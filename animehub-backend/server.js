@@ -28,9 +28,9 @@ connectDB(); //连接数据库
 // 初始化 WebSocket
 setupWebSocket(server); // 添加这行
 
-app.use(cors()); //启用cors中间件
-app.use(express.json({ limit: '50mb' })); //启用epxress json中间件获取请求头
-app.use(express.urlencoded({ limit: '50mb', extended: true })); //启用epxress urlencoded中间件
+app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
+app.use(express.json({ limit: "50mb" })); //启用epxress json中间件获取请求头
+app.use(express.urlencoded({ limit: "50mb", extended: true })); //启用epxress urlencoded中间件
 app.use("/uploads", express.static(path.join(__dirname, "uploads"))); //配置静态文件让外界可以访问特定文件夹
 app.use("/avatars", express.static(path.join(__dirname, "avatars"))); // 配置头像目录的静态文件务
 
