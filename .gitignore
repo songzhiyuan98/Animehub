@@ -1,6 +1,6 @@
 # 忽略 node_modules 文件夹
 node_modules/
-animehub-backend/node_modules/
+# animehub-backend/node_modules/
 animehub-frontend/node_modules/
 
 # 忽略操作系统特定文件
