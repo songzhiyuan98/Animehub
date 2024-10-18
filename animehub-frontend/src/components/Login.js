@@ -55,6 +55,11 @@ const Login = () => {
       // 保存 JWT 令牌到本地存储
       localStorage.setItem("accessToken", response.data.accessToken);
       localStorage.setItem("refreshToken", response.data.refreshToken);
+      console.log(
+        "Tokens stored:",
+        localStorage.getItem("accessToken"),
+        localStorage.getItem("refreshToken")
+      );
 
       // 将用户信息存入 Redux 状态
       dispatch(login(response.data.user));

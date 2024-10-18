@@ -6,13 +6,13 @@ import { clearNotifications } from "../redux/actions/notificationActions"; // �
 
 // 创建一个axios实例，设置基础URL
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:3000/api",
+  baseURL: process.env.REACT_APP_API_URL || "http://localhost:3000/api",
   timeout: 60000, // 增加超时时间到60秒
   maxContentLength: Infinity, // 取消客户端的内容长度限制
   maxBodyLength: Infinity, // 添加这行
   headers: {
-    'Content-Type': 'application/json',
-  }
+    "Content-Type": "application/json",
+  },
 });
 
 // 定义token管理器，用于处理accessToken和refreshToken
@@ -49,10 +49,7 @@ axiosInstance.interceptors.response.use(
   (response) => response, // 对于成功的响应，直接返回
   async (error) => {
     const originalRequest = error.config; // 获取原始请求配置
-    console.log(
-      "响应拦截器捕获到错误:",
-      error.response?.status
-    );
+    console.log("响应拦截器捕获到错误:", error.response?.status);
 
     // 处理401和403错误（未授权或禁止访问）
     if (

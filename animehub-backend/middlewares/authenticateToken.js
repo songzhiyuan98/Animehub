@@ -2,10 +2,11 @@
 //功能：
 //从请求头中获取 JWT 令牌，验证令牌，并将用户信息附加到请求对象上。
 //如果验证失败，返回相应的状态码。
+require("dotenv").config();
 
 const jwt = require("jsonwebtoken"); //导入jwt模块
 const verifyToken = require("../utils/verifyToken"); //导入验证jwt验证函数
-const SECRET_KEY = "your_hardcoded_secret_key"; //密钥
+const SECRET_KEY = process.env.JWT_SECRET; //定义jwt验证密钥
 
 const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers["authorization"]; //从请求头里获取authorization属性

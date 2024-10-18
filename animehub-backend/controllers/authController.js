@@ -6,7 +6,6 @@ const User = require("../models/User"); //导入user数据库集合
 const path = require("path"); //导入path
 const RefreshToken = require("../models/RefreshToken"); //导入刷新令牌数据库集合
 const SECRET_KEY = process.env.JWT_SECRET; //定义jwt验证密钥
-const REFRESH_SECRET_KEY = process.env.JWT_REFRESH_SECRET;
 const REFRESH_TOKEN_EXPIRATION = 7 * 24 * 60 * 60 * 1000; //定义刷新令牌过期时间（固定）
 const redis = require("../config/redisClient"); //导入redis模块
 const verifyToken = require("../utils/verifyToken");
