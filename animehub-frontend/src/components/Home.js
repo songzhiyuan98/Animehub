@@ -52,7 +52,7 @@ const Home = () => {
     setLoadingAnime(true);
     try {
       const response = await axiosInstance.get(
-        `daily-recommendations?page=${page}`
+        `/daily-recommendations?page=${page}`
       );
       const { recommendations, totalrecommendationPages } = response.data;
       setRecommendations(recommendations);
