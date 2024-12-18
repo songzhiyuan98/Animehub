@@ -114,7 +114,7 @@ const AnimeInfo = () => {
   }, [fetchAnimeDetails, fetchComments, checkFavoriteStatus]);
 
   useEffect(() => {
-    const socket = io("http://localhost:3000");
+    const socket = io(process.env.REACT_APP_WS_URL);
 
     socket.on("connect", () => {
       console.log("WebSocket connected");

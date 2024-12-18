@@ -31,7 +31,7 @@ const Navbar = () => {
   const isLoggedIn = useSelector((state) => state.user.isLoggedIn); //从redux中用选择器函数获取登录状态
   const user = useSelector((state) => state.user.user); //从redux中获取用户信息，若不在登录状态，此函数默认返回null
   const unreadCount = useSelector((state) => state.notifications.unreadCount); // 获取未读消息数量
-  const BASE_URL = "http://localhost:3000";
+  const BASE_URL = process.env.REACT_APP_WS_URL;
 
   const [anchorElNav, setAnchorElNar] = React.useState(null); //定义导航菜单锚点状态
   const [anchorElUser, setAnchorElUser] = React.useState(null); //定义用户菜单锚点状态

@@ -2,7 +2,7 @@
 import io from "socket.io-client";
 import { addNotification } from "../actions/notificationActions";
 
-const BACKEND_URL = process.env.REACT_APP_API_URL || "http://localhost:3000"; // 直接定义后端URL
+const BACKEND_URL = process.env.REACT_APP_WS_URL;
 
 const websocketMiddleware = () => {
   let socket = null;

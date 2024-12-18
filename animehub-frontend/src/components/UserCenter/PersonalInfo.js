@@ -30,7 +30,7 @@ const PersonalInfo = () => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user.user); //从redux中获取用户信息，若不在登录状态，此函数默认返回null
 
-  const BASE_URL = "http://localhost:3000"; //定义访问本地资源请求地址头部
+  const BASE_URL = process.env.REACT_APP_WS_URL;
 
   //状态管理
   const [open, setOpen] = useState(false); //状态变量管理弹窗显示状态
@@ -248,7 +248,7 @@ const PersonalInfo = () => {
       >
         <DialogTitle>{t("editPersonalInfo")}</DialogTitle>
         <DialogContent>
-          {/* 头像预览和上传 */}
+          {/* 头��预览和上传 */}
           <Box
             sx={{
               display: "flex",
