@@ -20,7 +20,7 @@ import {
   disconnectWebSocket,
   fetchNotifications,
 } from "./redux/actions/notificationActions";
-import PostDetail from './components/PostDetail';
+import PostDetail from "./components/PostDetail";
 
 const App = () => {
   const dispatch = useDispatch();
@@ -33,7 +33,7 @@ const App = () => {
 
     if (username && accessToken) {
       axiosInstance
-        .get("http://localhost:3000/api/getUserDoc", {
+        .get("/getUserDoc", {
           params: { username },
         })
         .then((response) => {

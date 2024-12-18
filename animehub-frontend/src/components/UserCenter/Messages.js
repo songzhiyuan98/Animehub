@@ -12,7 +12,7 @@ const Messages = () => {
     (state) => state.notifications.notifications
   );
   const dispatch = useDispatch();
-  const BASE_URL = "http://localhost:3000";
+  const BASE_URL = process.env.REACT_APP_API_URL.replace("/api", ""); // 从 API URL 中移除 /api
   const navigate = useNavigate();
 
   const handleCardClick = (notification) => {

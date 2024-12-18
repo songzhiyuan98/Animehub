@@ -73,9 +73,7 @@ const AnimeInfo = () => {
   const fetchAnimeDetails = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axiosInstance.get(
-        `http://localhost:3000/api/anime/${id}`
-      );
+      const response = await axiosInstance.get(`/anime/${id}`);
       setAnime(response.data.data);
     } catch (error) {
       console.error("Error fetching anime details:", error);
@@ -87,9 +85,7 @@ const AnimeInfo = () => {
   const fetchComments = useCallback(async () => {
     setIsCommentsLoading(true);
     try {
-      const response = await axiosInstance.get(
-        `http://localhost:3000/api/anime/${id}/comments`
-      );
+      const response = await axiosInstance.get(`/anime/${id}/comments`);
       setComments(response.data);
     } catch (error) {
       console.error("Error fetching comments:", error);
@@ -102,7 +98,7 @@ const AnimeInfo = () => {
     if (isLoggedIn && userId) {
       try {
         const response = await axiosInstance.get(
-          `http://localhost:3000/api/favorites/check/${userId}/${id}`
+          `/favorites/check/${userId}/${id}`
         );
         setIsFavorite(response.data.isFavorite);
       } catch (error) {
@@ -156,12 +152,9 @@ const AnimeInfo = () => {
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
     try {
-      const response = await axiosInstance.post(
-        `http://localhost:3000/api/anime/${id}/comments`,
-        {
-          content: newComment,
-        }
-      );
+      const response = await axiosInstance.post(`/anime/${id}/comments`, {
+        content: newComment,
+      });
       setNewComment(""); // 清空评论输入框
       // 移除了手动更新 comments 的逻辑，现在由 WebSocket 处理
     } catch (error) {
@@ -172,12 +165,9 @@ const AnimeInfo = () => {
   const handleReply = async (parentId, content) => {
     if (!content.trim()) return;
     try {
-      const response = await axiosInstance.post(
-        `http://localhost:3000/api/comments/${parentId}/reply`,
-        {
-          content: content,
-        }
-      );
+      const response = await axiosInstance.post(`/comments/${parentId}/reply`, {
+        content: content,
+      });
       // 立即更新本地状态
       setComments((prevComments) =>
         updateReplies(prevComments, parentId, response.data)
@@ -230,7 +220,7 @@ const AnimeInfo = () => {
     console.log("Toggling favorite for anime:", id);
     if (isFavorite) {
       axiosInstance
-        .post(`http://localhost:3000/api/favorites/remove`, {
+        .post(`/favorites/remove`, {
           userId: userId,
           animeId: id,
         })
@@ -241,7 +231,7 @@ const AnimeInfo = () => {
         .catch((error) => console.error("Error removing favorite: ", error));
     } else {
       axiosInstance
-        .post(`http://localhost:3000/api/favorites/add`, {
+        .post(`/favorites/add`, {
           userId: userId,
           animeId: id,
         })

@@ -33,9 +33,7 @@ const AnimeLiked = () => {
 
   const fetchLikedAnimes = async () => {
     try {
-      const response = await axiosInstance.get(
-        `http://localhost:3000/api/favorites/${user._id}`
-      );
+      const response = await axiosInstance.get(`/favorites/${user._id}`);
       setLikedAnimes(response.data);
       setLoading(false);
     } catch (error) {

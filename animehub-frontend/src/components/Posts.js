@@ -21,7 +21,7 @@ import {
   Add,
 } from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
-const BASE_URL = "http://localhost:3000";
+const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
 
 const Post = () => {
   const [posts, setPosts] = useState([]);
@@ -38,7 +38,7 @@ const Post = () => {
     setIsLoading(true);
     try {
       const response = await axiosInstance.get(
-        `/posts?page=${pageToFetch}&limit=10`
+        `http://localhost:3000/api/posts?page=${pageToFetch}&limit=10`
       );
       if (response.data && Array.isArray(response.data.posts)) {
         const newPosts = response.data.posts;

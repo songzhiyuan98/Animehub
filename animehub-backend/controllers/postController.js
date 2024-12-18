@@ -1,15 +1,16 @@
-const mongoose = require('mongoose');
-const Post = require('../models/Post');
+const mongoose = require("mongoose");
+const Post = require("../models/Post");
 
 // 创建帖子函数
 exports.createPost = async (req, res) => {
   try {
     const { title, content, previewText, tags } = req.body;
     const userId = req.user.userId;
-    let coverImage = '';
+    let coverImage = "";
 
     if (req.file) {
-      coverImage = '/' + req.file.path; // 添加前导斜杠
+      // Cloudinary 会自动处理文件上传，并在 req.file 中提供文件URL
+      coverImage = req.file.path; // Cloudinary URL
     }
 
     // 计算预计阅读时间
@@ -30,14 +31,14 @@ exports.createPost = async (req, res) => {
       coverImage,
       author: userId,
       readTime: readTime, // 将计算出的阅读时间存储到数据库
-      tags: JSON.parse(tags) // 解析标签数据
+      tags: JSON.parse(tags), // 解析标签数据
     });
 
     await newPost.save();
-    res.status(201).json({ message: '帖子创建成功', post: newPost });
+    res.status(201).json({ message: "帖子创建成功", post: newPost });
   } catch (error) {
-    console.error('Error in createPost:', error);
-    res.status(500).json({ message: '创建帖子失败', error: error.message });
+    console.error("Error in createPost:", error);
+    res.status(500).json({ message: "创建帖子失败", error: error.message });
   }
 };
 
@@ -48,9 +49,11 @@ exports.getPosts = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10; // 获取每页帖子数量
     const skip = (page - 1) * limit; // 计算跳过帖子数量
 
-    const posts = await Post.find() // 查找所有帖子
-      .select('title previewText coverImage author createdAt readTime tags likes') // 添加 tags
-      .populate('author', 'nickname avatar') // 关联user集合，填充username和avatar字段
+    const posts = await Post.find() // 查���所有帖子
+      .select(
+        "title previewText coverImage author createdAt readTime tags likes"
+      ) // 添加 tags
+      .populate("author", "nickname avatar") // 关联user集合，填充username和avatar字段
       .sort({ createdAt: -1 }) // 按创建时间降序排列
       .skip(skip) // 跳过帖子数量
       .limit(limit); // 限制帖子数量
@@ -62,13 +65,13 @@ exports.getPosts = async (req, res) => {
       posts,
       currentPage: page,
       totalPages,
-      hasMore: page < totalPages
+      hasMore: page < totalPages,
     };
 
     res.status(200).json(response); // 响应帖子信息
   } catch (error) {
-    console.error('Error in getPosts:', error); // 输出错误信息
-    res.status(500).json({ message: '获取帖子失败', error: error.message }); // 响应错误信息
+    console.error("Error in getPosts:", error); // 输出错误信息
+    res.status(500).json({ message: "获取帖子失败", error: error.message }); // 响应错误信息
   }
   // ... 保持不变 ...
 };
@@ -76,17 +79,19 @@ exports.getPosts = async (req, res) => {
 // 获取单个帖子详情函数
 exports.getPostById = async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id)
-      .populate('author', 'nickname avatar');
-    
+    const post = await Post.findById(req.params.id).populate(
+      "author",
+      "nickname avatar"
+    );
+
     if (!post) {
-      return res.status(404).json({ message: '帖子不存在' });
+      return res.status(404).json({ message: "帖子不存在" });
     }
 
     res.status(200).json(post);
   } catch (error) {
-    console.error('Error in getPostById:', error);
-    res.status(500).json({ message: '获取帖子详情失败', error: error.message });
+    console.error("Error in getPostById:", error);
+    res.status(500).json({ message: "获取帖子详情失败", error: error.message });
   }
 };
 
@@ -103,7 +108,7 @@ exports.likePost = async (req, res) => {
 
     const isLiked = post.likes.includes(userId);
     if (isLiked) {
-      post.likes = post.likes.filter(id => id.toString() !== userId);
+      post.likes = post.likes.filter((id) => id.toString() !== userId);
     } else {
       post.likes.push(userId);
     }
@@ -112,7 +117,7 @@ exports.likePost = async (req, res) => {
 
     res.json({ likes: post.likes.length, isLiked: !isLiked });
   } catch (error) {
-    console.error('点赞失败:', error);
+    console.error("点赞失败:", error);
     res.status(500).json({ message: "服务器错误" });
   }
 };
@@ -123,54 +128,70 @@ exports.getSimilarPosts = async (req, res) => {
     const { id } = req.params;
     const currentPost = await Post.findById(id);
     if (!currentPost) {
-      return res.status(404).json({ message: '帖子不存在' });
+      return res.status(404).json({ message: "帖子不存在" });
     }
 
     // 查找具有相同标签的帖子
     const similarPosts = await Post.find({
       _id: { $ne: id },
-      tags: { $in: currentPost.tags }
-    }).populate('author', 'nickname avatar');
+      tags: { $in: currentPost.tags },
+    }).populate("author", "nickname avatar");
 
     // 计算每个帖子匹配的标签数量并排序
     const sortedSimilarPosts = similarPosts
-      .map(post => ({
+      .map((post) => ({
         ...post.toObject(),
-        matchingTags: post.tags.filter(tag => currentPost.tags.includes(tag)).length
+        matchingTags: post.tags.filter((tag) => currentPost.tags.includes(tag))
+          .length,
       }))
       .sort((a, b) => b.matchingTags - a.matchingTags);
 
     // 如果相似帖子不足10个，随机选择其他帖子
     if (sortedSimilarPosts.length < 10) {
       const remainingCount = 10 - sortedSimilarPosts.length;
-      const existingIds = new Set([id, ...sortedSimilarPosts.map(post => post._id.toString())]);
+      const existingIds = new Set([
+        id,
+        ...sortedSimilarPosts.map((post) => post._id.toString()),
+      ]);
 
       const randomPosts = await Post.aggregate([
-        { $match: { _id: { $nin: Array.from(existingIds).map(id => new mongoose.Types.ObjectId(id)) } } },
-        { $sample: { size: remainingCount } },
-        { $lookup: {
-            from: 'users',
-            localField: 'author',
-            foreignField: '_id',
-            as: 'author'
-          }
+        {
+          $match: {
+            _id: {
+              $nin: Array.from(existingIds).map(
+                (id) => new mongoose.Types.ObjectId(id)
+              ),
+            },
+          },
         },
-        { $unwind: '$author' },
-        { $project: {
-            'author.nickname': 1,
-            'author.avatar': 1,
+        { $sample: { size: remainingCount } },
+        {
+          $lookup: {
+            from: "users",
+            localField: "author",
+            foreignField: "_id",
+            as: "author",
+          },
+        },
+        { $unwind: "$author" },
+        {
+          $project: {
+            "author.nickname": 1,
+            "author.avatar": 1,
             title: 1,
             content: 1,
             previewText: 1,
             coverImage: 1,
             createdAt: 1,
             readTime: 1,
-            tags: 1
-          }
-        }
+            tags: 1,
+          },
+        },
       ]);
 
-      sortedSimilarPosts.push(...randomPosts.map(post => ({ ...post, matchingTags: 0 })));
+      sortedSimilarPosts.push(
+        ...randomPosts.map((post) => ({ ...post, matchingTags: 0 }))
+      );
     }
 
     // 返回前10个帖子
@@ -178,7 +199,7 @@ exports.getSimilarPosts = async (req, res) => {
 
     res.status(200).json(recommendedPosts);
   } catch (error) {
-    console.error('Error in getSimilarPosts:', error);
-    res.status(500).json({ message: '获取相似帖子失败', error: error.message });
+    console.error("Error in getSimilarPosts:", error);
+    res.status(500).json({ message: "获取相似帖子失败", error: error.message });
   }
 };

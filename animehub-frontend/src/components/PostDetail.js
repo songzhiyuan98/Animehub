@@ -27,7 +27,7 @@ import "./PostDetail.css"; // 创建这个文件来存放文章内容的样式
 import io from "socket.io-client";
 import "../style.css"; // 确保路径正确
 import { useTranslation } from "react-i18next";
-const BASE_URL = "http://localhost:3000";
+const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
 
 const PostDetail = () => {
   const { id } = useParams();

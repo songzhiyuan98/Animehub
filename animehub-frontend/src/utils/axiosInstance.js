@@ -97,9 +97,12 @@ const refreshAccessToken = async () => {
   const refreshToken = tokenManager.getRefreshToken();
   console.log("刷新token", refreshToken);
   try {
-    const response = await axios.post("http://localhost:3000/api/token", {
-      token: refreshToken,
-    });
+    const response = await axios.post(
+      `${process.env.REACT_APP_API_URL}/token`,
+      {
+        token: refreshToken,
+      }
+    );
     const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
       response.data;
     tokenManager.setTokens(newAccessToken, newRefreshToken);

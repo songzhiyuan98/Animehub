@@ -14,9 +14,7 @@ export const addNotification = (notification) => ({
 export const markNotificationAsRead = (notificationId) => {
   return async (dispatch) => {
     try {
-      await axiosInstance.put(
-        `http://localhost:3000/api/notifications/${notificationId}/read`
-      );
+      await axiosInstance.put(`/notifications/${notificationId}/read`);
       dispatch({
         type: "MARK_NOTIFICATION_READ",
         payload: notificationId,
@@ -39,9 +37,7 @@ export const clearNotifications = () => ({
 export const fetchNotifications = () => {
   return async (dispatch) => {
     try {
-      const response = await axiosInstance.get(
-        `http://localhost:3000/api/notifications`
-      );
+      const response = await axiosInstance.get(`/notifications`);
       dispatch(setNotifications(response.data));
     } catch (error) {
       console.error("Failed to fetch notifications:", error);
@@ -52,9 +48,7 @@ export const fetchNotifications = () => {
 export const fetchUnreadCount = () => {
   return async (dispatch) => {
     try {
-      const response = await axiosInstance.get(
-        `http://localhost:3000/api/notifications/unread-count`
-      );
+      const response = await axiosInstance.get(`/notifications/unread-count`);
       dispatch({
         type: "SET_UNREAD_COUNT",
         payload: response.data.count,
@@ -68,9 +62,7 @@ export const fetchUnreadCount = () => {
 export const deleteNotification = (notificationId) => {
   return async (dispatch) => {
     try {
-      await axiosInstance.delete(
-        `http://localhost:3000/api/notifications/${notificationId}`
-      );
+      await axiosInstance.delete(`/notifications/${notificationId}`);
       dispatch({
         type: "DELETE_NOTIFICATION",
         payload: notificationId,

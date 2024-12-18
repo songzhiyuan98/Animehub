@@ -17,7 +17,7 @@ const postRoutes = require("./routes/postRoutes"); //导入帖子相关的路由
 const animeRoutes = require("./routes/animeRoutes"); // 更改名称
 const notificationRoutes = require("./routes/notificationRoutes"); // 添加这行
 const tagRoutes = require("./routes/tagRoutes"); // 添加这行
-require("dotenv").config(); //加载环境变量
+require("dotenv").config(); //加载���境变量
 
 const app = express();
 const server = http.createServer(app); // 创建 HTTP 服务器，但保留 app
@@ -31,7 +31,7 @@ setupWebSocket(server); // 添加这行
 app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 app.use(express.json({ limit: "50mb" })); //启用epxress json中间件获取请求头
 app.use(express.urlencoded({ limit: "50mb", extended: true })); //启用epxress urlencoded中间件
-app.use("/uploads", express.static(path.join(__dirname, "uploads"))); //配置静态文件让外界可以访问特定文件夹
+// app.use("/uploads", express.static(path.join(__dirname, "uploads"))); //配置静态文件让外界可以访问特定文件夹
 app.use("/avatars", express.static(path.join(__dirname, "avatars"))); // 配置头像目录的静态文件务
 
 app.use("/api", authRoutes); //定义访问认证相关路由的路径

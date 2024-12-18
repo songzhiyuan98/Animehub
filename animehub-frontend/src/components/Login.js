@@ -26,6 +26,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false); // 控制密码显示
   const dispatch = useDispatch(); // Redux dispatch 函数
   const navigate = useNavigate(); // React Router 导航
+  const baseURL = process.env.REACT_APP_API_URL || "http://localhost:3000/api";
 
   // 切换显示密码
   const handleClickShowPassword = () => {
@@ -44,7 +45,7 @@ const Login = () => {
 
     try {
       // 向服务器发送登录请求
-      const response = await axios.post("http://localhost:3000/api/login", {
+      const response = await axios.post(`${baseURL}/login`, {
         identifier,
         password,
       });

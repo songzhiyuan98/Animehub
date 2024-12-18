@@ -98,10 +98,9 @@ const Register = () => {
     }
 
     try {
-      const response = await axiosInstance.post(
-        "http://localhost:3000/api/request-verification-code",
-        { email }
-      ); //将用户邮箱，状态变量发送至后端请求发送验证码到指定邮箱
+      const response = await axiosInstance.post("/request-verification-code", {
+        email,
+      }); //将用户邮箱，状态变量发送至后端请求发送验证码到指定邮箱
       setMessage(response.data.message); //成功响应
       setCountdown(60); //发送验证码成功响应后开始倒计时60秒
     } catch (error) {
@@ -118,10 +117,10 @@ const Register = () => {
     }
 
     try {
-      const response = await axiosInstance.post(
-        "http://localhost:3000/api/verify-code",
-        { email, code: verificationCode }
-      );
+      const response = await axiosInstance.post("/verify-code", {
+        email,
+        code: verificationCode,
+      });
       setMessage(response.data.message); //成功响应
     } catch (error) {
       setMessage(error.response ? error.response.data.message : error.message); //如果请求后端函数内部的错误消息存在，返回内部错误详细，如果不存在，返回一般错误消息
@@ -159,15 +158,12 @@ const Register = () => {
     }
     try {
       //向端口为3000的服务器路由register发送请求，请求包「username，password」状态变量
-      const response = await axiosInstance.post(
-        "http://localhost:3000/api/register",
-        {
-          username,
-          password,
-          email,
-          verificationCode,
-        }
-      );
+      const response = await axiosInstance.post("/register", {
+        username,
+        password,
+        email,
+        verificationCode,
+      });
 
       setMessage(response.data.message); //设置状态变量message的值为后端响应的数据的message属性
 

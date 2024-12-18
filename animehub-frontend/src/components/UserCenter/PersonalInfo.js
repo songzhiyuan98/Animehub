@@ -96,10 +96,7 @@ const PersonalInfo = () => {
 
     //发送请求更新昵称，性别，头像
     try {
-      const response = await axiosInstance.post(
-        "http://localhost:3000/api/updateUserProfile",
-        formData
-      ); //使用axiosInstance已经自动在请求头包含jwt令牌
+      const response = await axiosInstance.post("/updateUserProfile", formData); //使用axiosInstance已经自动在请求头包含jwt令牌
       console.log(t("userInfoUpdateSuccess"), response.data);
       dispatch(updateUser(response.data)); // 更新 Redux 状态
       //处理后端更新成功后的逻辑，例如更新用户信息显示
