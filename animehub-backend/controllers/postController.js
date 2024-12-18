@@ -9,8 +9,8 @@ exports.createPost = async (req, res) => {
     let coverImage = "";
 
     if (req.file) {
-      // Cloudinary 会自动处理文件上传，并在 req.file 中提供文件URL
-      coverImage = req.file.path; // Cloudinary URL
+      // Cloudinary 会自动提供文件URL
+      coverImage = req.file.path;
     }
 
     // 计算预计阅读时间
@@ -49,7 +49,7 @@ exports.getPosts = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10; // 获取每页帖子数量
     const skip = (page - 1) * limit; // 计算跳过帖子数量
 
-    const posts = await Post.find() // 查���所有帖子
+    const posts = await Post.find() // 查询所有帖子
       .select(
         "title previewText coverImage author createdAt readTime tags likes"
       ) // 添加 tags
@@ -137,7 +137,7 @@ exports.getSimilarPosts = async (req, res) => {
       tags: { $in: currentPost.tags },
     }).populate("author", "nickname avatar");
 
-    // 计算每个帖子匹配的标签数量并排序
+    // 计算每个帖子匹��的标签数量并排序
     const sortedSimilarPosts = similarPosts
       .map((post) => ({
         ...post.toObject(),

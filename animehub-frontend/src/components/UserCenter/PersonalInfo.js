@@ -34,7 +34,7 @@ const PersonalInfo = () => {
 
   //状态管理
   const [open, setOpen] = useState(false); //状态变量管理弹窗显示状态
-  const [nickname, setNickname] = useState(user.nickname); //状态变量储存昵称输入框
+  const [nickname, setNickname] = useState(user.nickname); //态变量储存昵称输入框
   const [gender, setGender] = useState(user.gender); //状态变量储存性别输入框
   const [avatar, setAvatar] = useState(""); // 状态变量储存当前头像
   const [previewAvatar, setPreviewAvatar] = useState(null); //预览头像
@@ -49,7 +49,7 @@ const PersonalInfo = () => {
 
   useEffect(() => {
     if (user && user.avatar) {
-      setAvatar(`${BASE_URL}${user.avatar}`);
+      setAvatar(user.avatar);
     } else {
       setAvatar("/path/to/default/avatar.png"); // 默认头像
     }
@@ -61,10 +61,10 @@ const PersonalInfo = () => {
     //打开编辑弹窗，更新所有状态变量
     setNickname(user.nickname);
     setGender(user.gender);
-    setAvatar(`${BASE_URL}${user.avatar}`);
+    setAvatar(user.avatar);
     setOriginalNickname(user.nickname);
     setOriginalGender(user.gender);
-    setOriginalAvatar(`${BASE_URL}${user.avatar}`);
+    setOriginalAvatar(user.avatar);
     setAvatarFile(null);
     setPreviewAvatar(null);
   };
@@ -86,25 +86,36 @@ const PersonalInfo = () => {
   };
   //处理确认保存编辑弹窗后函数
   const handleSave = async () => {
-    //处理保存逻辑，向后端发送请求保存更改（待写）
-    const formData = new FormData(); //新的formdata对象保存上传数据
-    formData.append("nickname", nickname); //保存昵称状态变量到formdata
-    formData.append("gender", gender); //保存性别状态变量到formdata
+    const formData = new FormData();
+    formData.append("nickname", nickname);
+    formData.append("gender", gender);
+
     if (avatarFile) {
-      formData.append("avatar", avatarFile); //保存头像状态变量到formdata，如果avatarFile已经被上传头像更新了
+      console.log("Avatar file:", avatarFile);
+      formData.append("avatar", avatarFile);
     }
 
-    //发送请求更新昵称，性别，头像
-    try {
-      const response = await axiosInstance.post("/updateUserProfile", formData); //使用axiosInstance已经自动在请求头包含jwt令牌
-      console.log(t("userInfoUpdateSuccess"), response.data);
-      dispatch(updateUser(response.data)); // 更新 Redux 状态
-      //处理后端更新成功后的逻辑，例如更新用户信息显示
-    } catch (error) {
-      console.error(t("userInfoUpdateFailed"), error);
-      //处理后端请求更新失败后的逻辑
+    // 打印 FormData 内容
+    for (let pair of formData.entries()) {
+      console.log(pair[0], pair[1]);
     }
-    handleClose(); //关闭编辑弹窗
+
+    try {
+      const response = await axiosInstance.post(
+        "/updateUserProfile",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      console.log("Update response:", response.data);
+      dispatch(updateUser(response.data));
+    } catch (error) {
+      console.error("Update error:", error.response?.data || error);
+    }
+    handleClose();
   };
 
   // 性别转换函数
@@ -170,7 +181,7 @@ const PersonalInfo = () => {
             >
               <Avatar
                 alt={user.username}
-                src={avatar}
+                src={user.avatar || "/path/to/default/avatar.png"}
                 sx={{
                   width: 80,
                   height: 80,
@@ -248,7 +259,7 @@ const PersonalInfo = () => {
       >
         <DialogTitle>{t("editPersonalInfo")}</DialogTitle>
         <DialogContent>
-          {/* 头��预览和上传 */}
+          {/* 头预览和上传 */}
           <Box
             sx={{
               display: "flex",

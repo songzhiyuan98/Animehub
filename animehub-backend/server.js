@@ -32,7 +32,7 @@ app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 app.use(express.json({ limit: "50mb" })); //启用epxress json中间件获取请求头
 app.use(express.urlencoded({ limit: "50mb", extended: true })); //启用epxress urlencoded中间件
 // app.use("/uploads", express.static(path.join(__dirname, "uploads"))); //配置静态文件让外界可以访问特定文件夹
-app.use("/avatars", express.static(path.join(__dirname, "avatars"))); // 配置头像目录的静态文件务
+// app.use("/avatars", express.static(path.join(__dirname, "avatars"))); // 配置头像目录的静态文件务
 
 app.use("/api", authRoutes); //定义访问认证相关路由的路径
 app.use("/api", commentRoutes); //定义访问评论相关路由的路径

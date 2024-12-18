@@ -11,8 +11,9 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: "animehub", // 你的文件夹名称
+    folder: "animehub/avatars", // 专门存储头像的文件夹
     allowed_formats: ["jpg", "jpeg", "png", "gif"], // 允许的文件格式
+    transformation: [{ width: 200, height: 200, crop: "fill" }], // 统一头像尺寸
   },
 });
 

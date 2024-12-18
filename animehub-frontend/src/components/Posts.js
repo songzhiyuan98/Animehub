@@ -21,7 +21,6 @@ import {
   Add,
 } from "@mui/icons-material";
 import { useTranslation } from "react-i18next";
-const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
 
 const Post = () => {
   const [posts, setPosts] = useState([]);
@@ -173,11 +172,7 @@ const Post = () => {
                   <Grid item xs={12} md={9}>
                     <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
                       <Avatar
-                        src={
-                          post.author?.avatar
-                            ? `${BASE_URL}${post.author.avatar}`
-                            : undefined
-                        }
+                        src={post.author?.avatar || undefined}
                         sx={{ mr: 1 }}
                       />
                       <Typography variant="subtitle1" color="text.secondary">
@@ -247,7 +242,7 @@ const Post = () => {
                   >
                     {post.coverImage && (
                       <Avatar
-                        src={`${BASE_URL}${post.coverImage}`}
+                        src={post.coverImage}
                         variant="rounded"
                         sx={{
                           width: "100%",

@@ -372,9 +372,7 @@ const PostDetail = () => {
                   >
                     <Avatar
                       src={
-                        post.author?.avatar
-                          ? `${BASE_URL}${post.author.avatar}`
-                          : undefined
+                        post.author?.avatar ? post.author?.avatar : undefined
                       }
                       sx={{ mr: 2, width: 48, height: 48 }}
                     />
@@ -452,12 +450,9 @@ const PostDetail = () => {
                   </Typography>
                   <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
                     <Avatar
-                      src={
-                        post.author?.avatar
-                          ? `${BASE_URL}${post.author.avatar}`
-                          : undefined
-                      }
-                      sx={{ width: 60, height: 60, mr: 2 }}
+                      src={post.author?.avatar || "/path/to/default/avatar.png"}
+                      alt={post.author?.nickname}
+                      sx={{ width: 50, height: 50, mr: 2 }}
                     />
                     <Box>
                       <Typography variant="subtitle1">

@@ -29,7 +29,7 @@ const Comment = ({ comment, onReply, currentUser, depth = 0 }) => {
 
   const getUserInfo = (user) => ({
     username: user?.nickname || t("anonymousUser"),
-    avatar: user?.avatar ? `${BASE_URL}${user.avatar}` : undefined,
+    avatar: user?.avatar ? user.avatar : undefined,
   });
 
   const { username, avatar } = getUserInfo(comment.userId);

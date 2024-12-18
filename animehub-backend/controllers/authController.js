@@ -197,23 +197,35 @@ exports.getUserDoc = async (req, res) => {
 
 //更新用户信息函数
 exports.updateUserProfile = async (req, res) => {
-  const { nickname, gender } = req.body; //从请求头解构昵称，性别
-  const userId = req.user.userId; //从jwt令牌中获取req.user
+  const { nickname, gender } = req.body;
+  const userId = req.user.userId;
 
   try {
-    const updateData = { nickname, gender }; //更新数组
+    console.log("Request body:", req.body);
+    console.log("Request file:", req.file);
+    console.log("User ID:", userId);
+
+    const updateData = { nickname, gender };
     if (req.file) {
-      updateData.avatar = `/avatars/${req.file.filename}`; //如果头像文件存在，更新数组
+      console.log("File path:", req.file.path);
+      updateData.avatar = req.file.path;
     }
+
+    console.log("Update data:", updateData);
+
     const updateUser = await User.findByIdAndUpdate(userId, updateData, {
       new: true,
-    }); //根据id查找用户文档并且更新
+    }).select("-password");
+
+    console.log("Updated user:", updateUser);
+
     if (!updateUser) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "用户不存在" });
     }
-    res.json(updateUser); //响应更新后的用户文档
+    res.json(updateUser);
   } catch (error) {
-    res.status(500).json({ message: "Internal server error", error });
+    console.error("更新用户信息错误:", error);
+    res.status(500).json({ message: "服务器错误", error: error.message });
   }
 };
 

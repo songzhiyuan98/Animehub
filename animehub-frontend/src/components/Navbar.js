@@ -197,7 +197,11 @@ const Navbar = () => {
                         horizontal: "right",
                       }}
                     >
-                      <Avatar alt={user?.username} src={avatarSrc} />
+                      <Avatar
+                        alt={user?.username}
+                        src={user?.avatar || "/path/to/default/avatar.png"}
+                        sx={{ width: 40, height: 40 }}
+                      />
                     </Badge>
                   </IconButton>
                 </Tooltip>

@@ -5,7 +5,11 @@ const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true }, //用户名
   password: { type: String, required: true }, //密码
   email: { type: String, required: true, unique: true }, //邮箱
-  avatar: { type: String, default: "/path/to/default/avatar.png" }, //头像
+  avatar: {
+    type: String,
+    default:
+      "https://res.cloudinary.com/你的cloud_name/image/upload/v1/animehub/default-avatar.png",
+  }, //头像
   nickname: { type: String, unique: true }, //昵称
   gender: { type: String, default: "未知" }, //性别
   emailVerified: { type: Boolean, default: false }, //邮箱是否验证，布尔函数
