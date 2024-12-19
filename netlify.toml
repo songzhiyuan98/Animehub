@@ -1,7 +1,10 @@
 [build]
   base = "animehub-frontend"
-  command = "npm install && npm run lint && npm run build"
+  command = "CI=false npm install && npm run lint && npm run build"
   publish = "build"
+
+[build.environment]
+  CI = "false"
 
 [[redirects]]
   from = "/*"
