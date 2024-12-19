@@ -37,7 +37,7 @@ const Post = () => {
     setIsLoading(true);
     try {
       const response = await axiosInstance.get(
-        `http://localhost:3000/api/posts?page=${pageToFetch}&limit=10`
+        `/posts?page=${pageToFetch}&limit=10`
       );
       if (response.data && Array.isArray(response.data.posts)) {
         const newPosts = response.data.posts;
