@@ -68,14 +68,21 @@ const Login = () => {
       // 登录成功后跳转到首页
       navigate("/");
     } catch (error) {
-      // 错误处理
       if (error.response) {
-        if (error.response.status === 401) {
-          setMessage(t("incorrectCredentials"));
-        } else if (error.response.status === 403) {
-          setMessage(t("accountDisabled"));
-        } else {
-          setMessage(t("loginFailed"));
+        // 根据后端返回的消息选择对应的翻译键
+        const message = error.response.data.message;
+        switch (message) {
+          case "该邮箱尚未注册":
+            setMessage(t("emailNotRegistered"));
+            break;
+          case "该用户名尚未注册":
+            setMessage(t("usernameNotRegistered"));
+            break;
+          case "密码不正确，请重试":
+            setMessage(t("incorrectPassword"));
+            break;
+          default:
+            setMessage(t("loginFailed"));
         }
       } else {
         setMessage(t("serverConnectionError"));

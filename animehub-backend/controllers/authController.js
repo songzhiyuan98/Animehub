@@ -131,18 +131,24 @@ exports.register = async (req, res) => {
 
 //登录函数
 exports.login = async (req, res) => {
-  const { identifier, password } = req.body; //接受用户名/邮箱，密码
+  const { identifier, password } = req.body;
   try {
-    //根据用户输入，用户名或者电子邮箱，查询用户文档
     const user = await User.findOne({
       $or: [{ username: identifier }, { email: identifier }],
     });
 
-    //检查用户是否存在
+    // 先检查用户是否存在
     if (!user) {
-      return res.status(401).json({ message: "用户名或者邮箱未注册" });
+      // 检查是否是邮箱格式
+      const isEmail = /\S+@\S+\.\S+/.test(identifier);
+      if (isEmail) {
+        return res.status(401).json({ message: "该邮箱尚未注册" });
+      } else {
+        return res.status(401).json({ message: "该用户名尚未注册" });
+      }
     }
 
+    // 如果用户存在，再检查密码
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({ message: "密码不正确，请重试" });

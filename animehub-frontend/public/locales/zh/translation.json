@@ -191,5 +191,9 @@
   "userInfoUpdateFailed": "更新用户信息失败",
   "save": "保存",
   "read": "已读",
-  "unread": "未读"
+  "unread": "未读",
+  "emailNotRegistered": "该邮箱尚未注册",
+  "usernameNotRegistered": "该用户名尚未注册",
+  "incorrectPassword": "密码不正确，请重试",
+  "loginSuccess": "登录成功"
 }
