@@ -80,9 +80,7 @@ const Home = () => {
   const fetchPosts = useCallback(async (page) => {
     setLoading(true);
     try {
-      const response = await axiosInstance.get(
-        "http://localhost:3000/api/posts?page=${page}&limit=10"
-      );
+      const response = await axiosInstance.get("/posts?page=${page}&limit=10");
       const data = response.data;
       setPosts((prevPosts) => {
         const newPosts = Array.isArray(data.posts)
