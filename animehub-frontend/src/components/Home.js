@@ -303,11 +303,7 @@ const Home = () => {
                   <Grid item xs={12} md={9}>
                     <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
                       <Avatar
-                        src={
-                          post.author?.avatar
-                            ? `${BASE_URL}${post.author.avatar}`
-                            : undefined
-                        }
+                        src={post.author?.avatar || undefined}
                         sx={{ mr: 1 }}
                       />
                       <Typography variant="subtitle1" color="text.secondary">
